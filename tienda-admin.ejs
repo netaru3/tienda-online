@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda Admin</title>
+</head>
+<body>
+    <h1>Hola admin, publica tus productos!</h1>
+     <button onclick="cerrarsesion()" id="sesion">cerrar sesión</button>
+    <button onclick="productos()">publicar producto</button>
+    <button onclick="window.location.href='/mensajeria/admin'">mensajes</button>
+    <h2>tus productos:</h2>
+
+    <div id="contenedor">
+
+</div>
+</body>
+<script type="module">
+    window.productos= function productos(){
+        window.location.href="/tienda/admin/productos"
+    }
+    window.cerrarsesion= async function cerrarsesion(){
+       await fetch(`/tienda/cerrarsesion`)
+       window.location.href="/data"
+    }
+
+    let productos=await fetch("/verproductos").then(function(res){return res.json()})
+
+    console.log(productos)
+    function mostrarproductos(i){
+        let nombre= document.createElement("h3")
+        nombre.textContent=productos[i].producto_nombre;
+
+        let precio= document.createElement("h4")
+        precio.textContent="precio: "+productos[i].producto_precio
+
+        let descripcion=document.createElement("p")
+        descripcion.textContent=productos[i].producto_descripcion
+
+   let imagen= document.createElement("img")
+   imagen.src=`/${productos[i].producto_imagen}`
+   imagen.width=500
+   console.log(imagen.src)
+ 
+   let contenedor= document.getElementById("contenedor")
+   contenedor.innerHTML +=`
+    <div class="card-header">
+        <div class="card-name">
+            <a href="/producto/${nombre.textContent}">${nombre.textContent}</a>
+        </div>
+    </div>
+
+    <a href="/producto/${nombre.textContent}">
+        <div class="card-image-container">
+            <img src="${imagen.src}" alt="${nombre.textContent}" width="500" class="card-image">
+        </div>
+    </a>
+
+    <div class="card-body">
+        <div class="card-description">
+            ${descripcion.textContent}
+        </div>
+        
+    </div>
+    <div class="card-header">
+        <div class="card-name">
+            <a href="/producto/${nombre.textContent}">${precio.textContent}</a>
+        </div>
+    </div>
+    <br>
+`
+
+}
+let i=0
+while(i<productos.length){mostrarproductos(i);++i}
+
+</script>
+</html>

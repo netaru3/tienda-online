@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        h1:last-of-type {
+            font-size: 18px;
+            color: #666;
+            font-weight: normal;
+            margin-bottom: 30px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input[type="button"] {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="button"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        input[type="button"]:active {
+            transform: translateY(0);
+        }
+
+        br {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <h1>Logearse</h1>
+    <h1>Ingrese sesión</h1>
+    <form method="post">
+    <input type="text" placeholder="Ingrese su usuario" name="usuario" id="usuario"> 
+    
+    <br>
+
+    <input type="password" placeholder="Ingrese su contraseña" name="contraseña" 
+    id="contraseña"> 
+    <br>
+<input type="button" value="Enviar" onclick="enviar()">
+    </form>
+    <input type="button" onclick="redireccionaregistro()" value="registrarse">
+    <input type="button"  onclick="redireccionar()" value="entrar como visitante">
+    
+
+         <script src="/socket.io/socket.io.js"></script>
+    <script>
+        window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+        window.location.reload();
+    }
+});
+        window.redireccionaregistro=function redireccionaregistro(){window.location.href="/"}
+        window.redireccionar=function redireccionar(){window.location.href="/tienda/visitante"}
+        const socket=io()
+          function enviar(){ socket.emit("usuario",{
+             usuario: document.getElementById("usuario").value,
+         contraseña: document.getElementById("contraseña").value
+          })
+            fetch("/data/logeado", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    usuario: document.getElementById("usuario").value,
+    contraseña: document.getElementById("contraseña").value
+  })
+}).then(function(res){
+    if(res!=="error en el inicio de sesión"){
+        localStorage.setItem("token",res.token)
+    window.location.href=`http://localhost:3000/tienda/${document.getElementById("usuario").value}`;
+    socket.emit("html",function(){console.log(res)
+        return res})
+}
+   return res.text()
+}).then(function(res){
+    if(res==="error en el inicio de sesión"){alert(res)
+   }
+ 
+})
+        }
+        
+        function señal(){socket.emit("error-sesion","xd")}
+    socket.on("error",
+            function(data){ if(document.getElementById("usuario").value=="" 
+            && document.getElementById("contraseña").value==""){
+                alert("ingrese usuario y contraseña");
+             }
+
+              else if(document.getElementById("usuario").value=="" 
+            || document.getElementById("contraseña").value==""){
+                alert("faltan usuario o contraseña")
+            }
+            else {alert("error en el inicio de sesion")}})
+         
+            
+    </script>
+    </div>
+</body>
+</html>

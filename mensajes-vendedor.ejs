@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .derecha{
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1>mensajes:</h1>
+    <div id="chats"></div>
+    <div id="mensajes"></div>
+    <div id="enviar"></div>
+   
+    </button>
+    <script src="/socket.io/socket.io.js"></script>
+
+    
+    
+    <script type="module">
+    //--------------declaraciones-------------------
+    let enviardiv= document.getElementById("enviar")
+     let div=document.getElementById("mensajes")
+        
+        let res=await fetch("/chats").then(function(res){return res
+        }).then(function(res){return res.json()})
+
+        let socket= io()
+         let mensajesuwu=[]
+          let i=0; let a=0
+
+        
+
+ //------------ declaración de funciones---------------
+ function mostrarmensajes(mensajes,usuario){ console.log(mensajes,usuario)
+   
+     if(mensajes.length===1 && mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario){div.innerHTML+=` <br>
+      <p class="derecha">${mensajes[0].mensaje}</p> <br>  `
+      console.log("se envió un mensaje")
+      return}
+
+       if(mensajes.length===1 && mensajes[0].vendedor===false && mensajes[0].usuario===usuario){div.innerHTML+=` <br>
+      <p>${mensajes[0].mensaje}</p> <br>  `
+      console.log("se envió un mensaje")
+      return}
+
+    if(mensajes.length>1){div.innerHTML="";
+  
+    for(let mensaje of mensajes)
+     { console.log(a)
+      
+        if(mensaje.vendedor===false && i===0 && mensaje.usuario===usuario){++i, a=0;div.innerHTML+=`<p>${mensaje.usuario}:</p> <br>
+      <p>${mensaje.mensaje}</p> <br>  `}
+
+      else if(mensaje.vendedor===false && i!==0 && mensaje.usuario===usuario){div.innerHTML+=` <br>
+      <p>${mensaje.mensaje}</p> <br>  `}
+
+    else if(mensaje.vendedor && a===0 && mensaje.usuario_respuesta===usuario){ i=0; ++a
+        div.innerHTML+=`<p class="derecha">vendedor:</p> <br>
+      <p class="derecha">${mensaje.mensaje}</p> <br>  `
+    }
+ else if(mensaje.vendedor && a!==0 && mensaje.usuario_respuesta===usuario){ i=0;   
+        div.innerHTML+=` <br>
+      <p class="derecha">${mensaje.mensaje}</p> <br>  `
+    }}}
+    
+    else
+     {if(mensajes.vendedor===false){++i, a=0;div.innerHTML+=`<p>${mensajes.usuario}:</p> <br>
+      <p>${mensajes.mensaje}</p> <br>  `}
+      
+      else if(mensajes.vendedor===false && i!==0){div.innerHTML+=` <br>
+      <p>${mensajes.mensaje}</p> <br>  `}
+    else if(mensajes.vendedor){ i=0
+        div.innerHTML+=`<p class="derecha">vendedor:</p> <br>
+      <p class="derecha">${mensajes.mensaje}</p> <br>  `
+    }
+ else if(mensajes.vendedor){ i=0; ++a
+        div.innerHTML+=` <br>
+      <p class="derecha">${mensajes.mensaje}</p> <br>  `
+    }}
+    
+ }
+
+ window.enviarmensaje= async function enviarjmensaje(usuario){ console.log("se ejecutó la función del onclick")
+ await fetch("/mensajes",{method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({usuario:"vendedor",
+        mensaje: document.getElementById("mensaje").value,
+        vendedor: true,
+        usuario_respuesta: usuario//usuario al que el vendedor responde
+    })
+ })
+ document.getElementById("mensaje").value=""
+ console.log("se envió el mensaje")
+ }
+
+ //------------código----------------
+
+        for(let usuario of res){ 
+          let chat= document.getElementById("chats")
+          let boton=document.createElement("button");
+
+         boton.textContent=usuario
+         boton.id=`${usuario}`
+         console.log(usuario)
+
+        boton.onclick= function(){ enviardiv.innerHTML=`  <input type="text" placeholder='escriba un mensaje' id='mensaje'>
+         <button id='mensajeboton' >enviar</button>`
+          ;mostrarmensajes(mensajesuwu,usuario);
+          
+        document.getElementById("mensajeboton").onclick=function(){enviarmensaje(usuario);
+          setTimeout(() => {
+            mostrarmensajes(mensajesuwu,usuario)
+          }, 500); }}
+
+        chat.appendChild(boton)
+         
+        }
+
+        //------------websocket--------------------
+
+        socket.on("mensajes",function(mensajes){mensajesuwu=mensajes
+ })
+    
+
+
+    </script>
+</body>
+</html>

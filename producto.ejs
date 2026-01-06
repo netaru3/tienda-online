@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+
+
+<body>
+    <div id="contenedor"></div>
+<div id="comentarios"></div>
+    <button onclick="window.location.href='/mensajeria/<%= usuario %>'">contactar con el vendedor</button>
+    <script src="/socket.io/socket.io.js"></script>
+    <button onclick="comprobar()">comprar</button>
+    <p>comentarios:</p>
+    <input type="text" placeholder="enviar comentario" id="comentario"> <button onclick="enviarcomentarios()">enviar</button>
+    <script type="module">
+
+      function mostrarcomentarios(comentarios){
+               let i=0
+             const comentariodiv = document.getElementById("comentarios")
+             comentariodiv.innerHTML=""
+            for(let comentario of comentarios){
+               let comentusuario= document.createElement("p")
+               let coment= document.createElement("p")
+               comentusuario.textContent= comentario.usuario;
+               coment.textContent=comentario.comentario
+               document.createElement("br")
+                
+              if(comentario.producto==="<%= nombre %>"){ comentariodiv.innerHTML +=`<p>${comentusuario.textContent} dice:</p>
+              <p>${coment.textContent}</p>
+              <br> `}
+
+              ++i
+              for(let respuesta of respuestas){
+                if(respuesta.comentario===coment.textContent && respuesta.usuario_al_que_se_responde===comentusuario.textContent && respuesta.producto==="<%= nombre %>"){
+                comentariodiv.innerHTML +=`
+              <p>respuesta:${respuesta.respuesta}, @${respuesta.usuario_al_que_se_responde}</p>
+              <br> `        
+                }}
+            }
+            
+        }
+        let respuestas=[]
+          
+        let usuario= "<%= usuario %>"
+        let socket=io()
+socket.on("respuestas",function(respuestasdata){
+     respuestas=respuestasdata;
+     console.log(respuestas)});
+        socket.on("comentarios", async function(comentarios){ 
+     setTimeout(() => {
+            mostrarcomentarios(comentarios)
+     }, 50);
+    
+
+        })
+        
+       
+        window.enviarcomentarios= async function enviarcomentarios(){
+            await fetch("/comentarios",{method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({usuario: usuario,
+                    comentario: document.getElementById("comentario").value,
+                    producto: "<%= nombre %>"
+                })
+            }).then(function(res){return res.text()}).then(function(res){
+                if(res==="los visitantes no pueden comentar"){alert(res)}
+            })
+        }
+        
+        window.comprobar=async function comprobar(){
+            await fetch("/comprobarusuario").then(function(res){
+               return  res.text()
+            }).then(function(res){ console.log(res)
+                if(res==="ingrese sesion para comprar"){alert(res)}
+                else{alert("compra hecha!")}
+            })
+        }
+        let productos=await fetch("/verproductos").then(function(res){return res.json()})
+
+
+    console.log(productos)
+ function mostrarproductos(producto){
+        let nombre= document.createElement("h3")
+        nombre.textContent=producto.producto_nombre;
+
+        let precio= document.createElement("h4")
+        precio.textContent="precio: "+producto.producto_precio
+
+        let descripcion=document.createElement("p")
+        descripcion.textContent=producto.producto_descripcion
+
+   let imagen= document.createElement("img")
+   imagen.src=`/${producto.producto_imagen}`
+   imagen.width=500
+   console.log(imagen.src)
+ 
+   let contenedor= document.getElementById("contenedor")
+   contenedor.appendChild(nombre)
+   contenedor.appendChild(imagen)
+   contenedor.appendChild(precio)
+   contenedor.appendChild(descripcion)
+
+
+}
+
+
+for(let producto of productos){ if(producto.producto_nombre==="<%= nombre %>"){console.log(producto);
+     mostrarproductos(producto)}}
+
+      socket.on("comentarios", function(comentarios){ console.log("comentarios recibidos")
+            mostrarcomentarios(comentarios)
+
+
+        })
+
+    
+    </script>
+</body>
+</html>
