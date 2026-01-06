@@ -86,7 +86,7 @@
     
  }
 
- window.enviarmensaje= async function enviarjmensaje(usuario){ console.log("se ejecutó la función del onclick")
+ window.enviarmensaje= async function enviarmensaje(usuario){ console.log("se ejecutó la función del onclick")
  await fetch("/mensajes",{method:"POST",
     headers:{"Content-Type":"application/json"},
     body: JSON.stringify({usuario:"vendedor",
@@ -95,7 +95,6 @@
         usuario_respuesta: usuario//usuario al que el vendedor responde
     })
  })
- document.getElementById("mensaje").value=""
  console.log("se envió el mensaje")
  }
 
@@ -112,11 +111,25 @@
         boton.onclick= function(){ enviardiv.innerHTML=`  <input type="text" placeholder='escriba un mensaje' id='mensaje'>
          <button id='mensajeboton' >enviar</button>`
           ;mostrarmensajes(mensajesuwu,usuario);
-          
-        document.getElementById("mensajeboton").onclick=function(){enviarmensaje(usuario);
-          setTimeout(() => {
-            mostrarmensajes(mensajesuwu,usuario)
-          }, 500); }}
+
+        document.getElementById("mensajeboton").onclick=function(){enviarmensaje(usuario)
+            let id= setInterval(() => { console.log("se ejecutó el mensajeboton onclick")
+              try{
+              setTimeout(() => {console.log("se ejecutó el setTimeout ")
+                if(mensajesuwu[mensajesuwu.length-1].mensaje!==document.getElementById("mensaje").value){
+                  console.log("mensajesuwu es:",mensajesuwu[mensajesuwu.length-1].mensaje,"el input es",document.getElementById("mensaje").value)
+                }
+           else{mostrarmensajes(mensajesuwu,usuario); clearInterval(id);  document.getElementById("mensaje").value=""}
+          }, 500);
+         }catch{
+            
+            setTimeout(() => {if(mensajesuwu[mensajesuwu.length-1].mensaje!==document.getElementById("mensaje").value){new Error}
+           else{mostrarmensajes(mensajesuwu,usuario);  document.getElementById("mensaje").value=""}
+          }, 500)}
+            }, 600);
+
+  
+         }}
 
         chat.appendChild(boton)
          
