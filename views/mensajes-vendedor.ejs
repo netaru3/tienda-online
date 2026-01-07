@@ -37,22 +37,20 @@
         
 
  //------------ declaración de funciones---------------
- function mostrarmensajes(mensajes,usuario){ console.log(mensajes,usuario)
+ function mostrarmensajes(mensajes,usuario){
    
      if(mensajes.length===1 && mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario){div.innerHTML+=` <br>
       <p class="derecha">${mensajes[0].mensaje}</p> <br>  `
-      console.log("se envió un mensaje")
       return}
 
        if(mensajes.length===1 && mensajes[0].vendedor===false && mensajes[0].usuario===usuario){div.innerHTML+=` <br>
       <p>${mensajes[0].mensaje}</p> <br>  `
-      console.log("se envió un mensaje")
       return}
 
     if(mensajes.length>1){div.innerHTML="";
   
     for(let mensaje of mensajes)
-     { console.log(a)
+     {
       
         if(mensaje.vendedor===false && i===0 && mensaje.usuario===usuario){++i, a=0;div.innerHTML+=`<p>${mensaje.usuario}:</p> <br>
       <p>${mensaje.mensaje}</p> <br>  `}
@@ -70,7 +68,8 @@
     }}}
     
     else
-     {if(mensajes.vendedor===false){++i, a=0;div.innerHTML+=`<p>${mensajes.usuario}:</p> <br>
+     {
+      if(mensajes.vendedor===false){++i, a=0;div.innerHTML+=`<p>${mensajes.usuario}:</p> <br>
       <p>${mensajes.mensaje}</p> <br>  `}
       
       else if(mensajes.vendedor===false && i!==0){div.innerHTML+=` <br>
@@ -108,11 +107,14 @@
          boton.id=`${usuario}`
          console.log(usuario)
 
-        boton.onclick= function(){ enviardiv.innerHTML=`  <input type="text" placeholder='escriba un mensaje' id='mensaje'>
+        boton.onclick=async function(){ enviardiv.innerHTML=`  <input type="text" placeholder='escriba un mensaje' id='mensaje'>
          <button id='mensajeboton' >enviar</button>`
-            ;setInterval(() => {
-            mostrarmensajes(mensajesuwu,usuario)
-          },250);
+         socket.on("mensajes",function(mensajes){mensajesuwu=mensajes;
+           if(mensajes[0].vendedor===false) { mostrarmensajes(mensajesuwu,usuario)}
+            })
+            mostrarmensajes(mensajesuwu,usuario);
+            
+      
 
         document.getElementById("mensajeboton").onclick=function(){enviarmensaje(usuario)
             let id= setInterval(() => { console.log("se ejecutó el mensajeboton onclick")
