@@ -61,10 +61,10 @@
 
     else
      {if(mensajes[0].vendedor===false && mensajes[0].usuario===usuario && i===0){++i, a=0;div.innerHTML+=`<p class="derecha">${mensajes[0].usuario}:</p> <br>
-      <p class="derecha">${mensajes.mensaje}</p> <br>  `}
+      <p class="derecha">${mensajes[0].mensaje}</p> <br>  `}
 
       else if(mensajes[0].vendedor===false && i!==0 && mensajes[0].usuario===usuario){div.innerHTML+=` <br>
-      <p class="derecha">${mensajes.mensaje}</p> <br>  `}
+      <p class="derecha">${mensajes[0].mensaje}</p> <br>  `}
       
     else if(mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario && a===0){ i=0; ++a
         div.innerHTML+=`<p>vendedor:</p> <br>
