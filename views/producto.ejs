@@ -10,11 +10,12 @@
 
 <body>
     <div id="contenedor"></div>
+ <p>comentarios:</p>
 <div id="comentarios"></div>
     <button onclick="window.location.href='/mensajeria/<%= usuario %>'">contactar con el vendedor</button>
     <script src="/socket.io/socket.io.js"></script>
     <button onclick="comprobar()">comprar</button>
-    <p>comentarios:</p>
+   
     <input type="text" placeholder="enviar comentario" id="comentario"> <button onclick="enviarcomentarios()">enviar</button>
     <script type="module">
 
