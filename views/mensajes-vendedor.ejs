@@ -110,7 +110,9 @@
 
         boton.onclick= function(){ enviardiv.innerHTML=`  <input type="text" placeholder='escriba un mensaje' id='mensaje'>
          <button id='mensajeboton' >enviar</button>`
-          ;mostrarmensajes(mensajesuwu,usuario);
+            ;setInterval(() => {
+            mostrarmensajes(mensajesuwu,usuario)
+          },250);
 
         document.getElementById("mensajeboton").onclick=function(){enviarmensaje(usuario)
             let id= setInterval(() => { console.log("se ejecutó el mensajeboton onclick")
