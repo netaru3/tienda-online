@@ -23,6 +23,7 @@
         let usuario="<%= usuario %>"
         let div=document.getElementById("mensajes")
         let socket= io()
+         let i=0; let a=0
 
  window.enviarmensaje= async function enviarjmensaje(){ 
  await fetch("/mensajes",{method:"POST",
@@ -36,7 +37,7 @@
  }
 
  function mostrarmensajes(mensajes){
-    let i=0; let a=0
+
 
     if(mensajes.length>1){div.innerHTML="";
     for(let mensaje of mensajes)
