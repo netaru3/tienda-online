@@ -65,7 +65,7 @@
       else if(mensajes[0].vendedor===false && i!==0 && mensajes[0].usuario===usuario){div.innerHTML+=` <br>
       <p class="derecha">${mensajes.mensaje}</p> <br>  `}
       
-    else if(mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario){ i=0
+    else if(mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario && a===0){ i=0
         div.innerHTML+=`<p>vendedor:</p> <br>
       <p>${mensajes[0].mensaje}</p> <br>  `
     }
