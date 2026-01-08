@@ -6,13 +6,14 @@ import {createServer} from 'http'
 import {Server} from 'socket.io'
 import dotenv from 'dotenv'
 import path from 'path'
-import fs from 'fs'
 import multer from 'multer'
 import { now } from 'mongoose'
 import {log_comentarios} from './mongo-comentarios.js'
 import { log_respuestas } from './mongo-respuestas.js'
 import session from 'express-session'
 import { log_mensajes_cliente } from './mongo-mensajes-cliente.js'
+import { log_notificaciones_vendedor } from './mongo-notificaciones-vendedor.js'
+import { log_notificaciones_comprador } from './mongo-notificaciones-cliente.js'
 dotenv.config()
 
 //-----------------------------declaraciones--------------------------
@@ -134,8 +135,15 @@ app.post("/products",upload.single("imagen"),function(req,res){
     res.send("el producto fue creado con exito")
 })
 
-app.get("/comprobarusuario",function(req,res){ console.log(req.session.usuario)
+app.post("/comprobar-usuario",async function(req,res){ console.log("holaa?")
     if (req.session.usuario===undefined){return res.send("ingrese sesion para comprar")}
+    
+   try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
+        usuario: req.session.usuario,
+        notificacion: `el usuario ${req.session.usuario} ha comprado el producto ${req.body.producto}`,
+       producto: req.body.producto
+
+    })}catch(error){console.log("no se pudo crear la notificación",error)};
     res.send("ok")
 })
 
@@ -191,6 +199,13 @@ app.post("/comentarios",async function(req,res){
     res.send("ok")}
 
     catch(error){console.log("error creando el comentario",error); res.send("error")}
+    try{await log_notificaciones_vendedor.create({
+        usuario: req.session.usuario,
+        notificacion: `el usuario ${req.session.usuario} ha comentado en el producto ${req.body.producto}`,
+        producto: req.body.producto
+    })}
+    
+    catch(error){console.log("hubo un error creando la notificación",error)}
 })
 
 app.post("/respuesta",async function(req,res){
@@ -199,6 +214,11 @@ app.post("/respuesta",async function(req,res){
         comentario: req.body.comentario,
         producto: req.body.producto,
         respuesta: req.body.respuesta
+    })
+
+    await log_notificaciones_comprador.create({
+        usuario:req.body.usuario,
+        notificacion: `el vendedor ha respondido tu comentario sobre el producto ${req.body.producto}`
     })
 
     let respuestas= await log_respuestas.find({})
@@ -222,6 +242,11 @@ let nuevomensaje=await log_mensajes_cliente.create({
         res.send("ok")
 
    } catch(error){console.log("error: ",error)}}
+
+  if(req.session.usuario!=="admin"){ await log_notificaciones_vendedor.create({
+    usuario: req.session.usuario,
+    notificacion: `el usuario ${req.session.usuario} te ha enviado un mensaje`
+   })}
 })
 
 app.get("/mensajeria/admin",function(req,res){
@@ -244,6 +269,15 @@ console.log(usuarios_unicos)
 res.json(usuarios_unicos)
 })
 
+app.get("/notificaciones-vendedor",async function(req,res){
+  let notificaciones= await log_notificaciones_vendedor.find({})
+  res.json(notificaciones)
+})
+
+app.get("/notificaciones-comprador",async function(req,res){
+    let notificaciones= await log_notificaciones_comprador.find({})
+    res.json(notificaciones)
+})
 //----------------rutas dinámicas--------------------
 
 app.get("/tienda/:nombre",function(req,res){
