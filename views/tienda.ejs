@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tienda</title>
+     <style>
+        .derecha{
+            text-align: right;
+        }
+    </style>
 </head>
 <body>
     <h1 id="bienvenida">bienvenido </h1> 
     <button onclick="redireccionarlogin()" id="login">iniciar sesion</button>
     <button onclick="redireccionarregistro()" id="registro">registrarse</button>
+    <button onclick="notificaciones()" class="derecha">notificaciones</button>
+    <div id="notificaciones"></div>
+     <button onclick="cerrarsesion()" id="sesion">cerrar sesión</button>
     <h2>Mira todo los productos que tenemos!</h2>
 
     <div id="contenedor">
@@ -16,11 +24,30 @@
     </div>
     
 
-    <button onclick="cerrarsesion()" id="sesion">cerrar sesión</button>
+   
 </body>
 <script type="module">
+    //----------declaración de variables------------
+    let i=0
+    let a=0
+    let nombre= "<%= nombre %>"
+
+     let notificaciones1= await fetch("/notificaciones-comprador").then(function(res){return res}).then(function(res){
+        return res.json()
+
+       
+    })
+    let productos=await fetch("/verproductos").then(function(res){return res.json()})
 
 
+    //--------------declaración de funciones-------------------
+     window.notificaciones= function notificaciones(){ let div= document.getElementById("notificaciones"); div.innerHTML=""
+        if(a===0){
+        for(let notificacion of notificaciones1){
+            div.innerHTML+=`<p class="derecha">notificacion: ${notificacion.notificacion}</p> <br>`; ++a}
+    return}
+       if(a!==0){div.innerHTML="", a=0}
+    }
 
     window.redireccionarregistro= function redireccionarregistro(){
         window.location.href="/"
@@ -28,22 +55,16 @@
       window.redireccionarlogin= function redireccionarlogin(){
         window.location.href="/data"
     }
-    let nombre= "<%= nombre %>"
+    
 
-    if(nombre==="undefined"){nombre="visitante"}
-
-    document.getElementById("bienvenida").textContent+=" "+nombre
-
-    if(nombre!=="visitante"){document.getElementById("login").remove();
-        document.getElementById("registro").remove()
-    }
+    
   window.cerrarsesion= async function cerrarsesion(){
        await fetch(`/tienda/cerrarsesion`)
        window.location.href="/data"
     }
-    if(nombre==="visitante"){document.getElementById("sesion").remove()}
+   
 
-    let productos=await fetch("/verproductos").then(function(res){return res.json()})
+    
 
     console.log(productos)
     function mostrarproductos(i){
@@ -91,7 +112,17 @@
 
 
 }
-let i=0
+        //------------codigo-----------------
+         if(nombre==="visitante"){document.getElementById("sesion").remove()}
+
+        if(nombre==="undefined"){nombre="visitante"}
+
+    document.getElementById("bienvenida").textContent+=" "+nombre
+
+    if(nombre!=="visitante"){document.getElementById("login").remove();
+        document.getElementById("registro").remove()
+    }
+
 while(i<productos.length){mostrarproductos(i);++i}
 
 
