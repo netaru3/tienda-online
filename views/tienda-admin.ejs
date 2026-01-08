@@ -4,30 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tienda Admin</title>
+    <style>
+        .derecha{
+            text-align: right;
+        }
+    </style>
 </head>
 <body>
     <h1>Hola admin, publica tus productos!</h1>
      <button onclick="cerrarsesion()" id="sesion">cerrar sesión</button>
     <button onclick="productos()">publicar producto</button>
     <button onclick="window.location.href='/mensajeria/admin'">mensajes</button>
+    <button onclick="notificaciones()" class="derecha">notificaciones</button>
+    <div id="notificaciones"></div>
     <h2>tus productos:</h2>
 
     <div id="contenedor">
 
 </div>
+
 </body>
 <script type="module">
+
+    //----------declaración de variables------------------
+    let productos=await fetch("/verproductos").then(function(res){return res.json()})
+    let i=0
+    let a=0
+
+    let notificaciones1= await fetch("/notificaciones-vendedor").then(function(res){return res}).then(function(res){
+        return res.json()
+    })
+    console.log(notificaciones1)
+
+
+    //----------declaración de funciones----------------
+    window.notificaciones= function notificaciones(){ let div= document.getElementById("notificaciones"); div.innerHTML=""
+        if(a===0){
+        for(let notificacion of notificaciones1){
+            div.innerHTML+=`<p class="derecha">notificacion: ${notificacion.notificacion}</p> <br>`; ++a}
+    return}
+       if(a!==0){div.innerHTML="", a=0}
+    }
+
     window.productos= function productos(){
         window.location.href="/tienda/admin/productos"
     }
+
     window.cerrarsesion= async function cerrarsesion(){
        await fetch(`/tienda/cerrarsesion`)
        window.location.href="/data"
     }
 
-    let productos=await fetch("/verproductos").then(function(res){return res.json()})
-
-    console.log(productos)
+    
     function mostrarproductos(i){
         let nombre= document.createElement("h3")
         nombre.textContent=productos[i].producto_nombre;
@@ -69,10 +97,10 @@
         </div>
     </div>
     <br>
-`
+`}
 
-}
-let i=0
+    //----------------codigo----------------------
+
 while(i<productos.length){mostrarproductos(i);++i}
 
 </script>
