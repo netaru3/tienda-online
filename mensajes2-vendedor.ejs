@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .derecha{
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    
+    <h1>mensajes:</h1>
+    <div id="chats"></div>
+    <div id="mensajes"></div>
+    <div id="enviar"></div>
+    <input type="text" id="mensaje" placeholder="enviar mensaje">
+    <button onclick="enviarmensaje('<%= usuario %>')">enviar</button>
+   
+    </button>
+    <script src="/socket.io/socket.io.js"></script>
+
+    
+    
+    <script type="module">
+    //--------------declaraciones-------------------
+    let enviardiv= document.getElementById("enviar")
+     let div=document.getElementById("mensajes")
+
+        let socket= io()
+         let mensajesuwu=[]
+          let i=0; let a=0
+
+        
+
+ //------------ declaración de funciones---------------
+ function mostrarmensajes(mensajes,usuario){
+    document.getElementById("mensaje").value=""
+   
+     if(mensajes.length===1 && mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario){div.innerHTML+=` <br>
+      <p class="derecha">${mensajes[0].mensaje}</p> <br>  `
+      return}
+
+       if(mensajes.length===1 && mensajes[0].vendedor===false && mensajes[0].usuario===usuario){div.innerHTML+=` <br>
+      <p>${mensajes[0].mensaje}</p> <br>  `
+      return}
+
+    if(mensajes.length>1){div.innerHTML="";
+  
+    for(let mensaje of mensajes)
+     {
+      
+        if(mensaje.vendedor===false && i===0 && mensaje.usuario===usuario){++i, a=0;div.innerHTML+=`<p>${mensaje.usuario}:</p> <br>
+      <p>${mensaje.mensaje}</p> <br>  `}
+
+      else if(mensaje.vendedor===false && i!==0 && mensaje.usuario===usuario){div.innerHTML+=` <br>
+      <p>${mensaje.mensaje}</p> <br>  `}
+
+    else if(mensaje.vendedor && a===0 && mensaje.usuario_respuesta===usuario){ i=0; ++a
+        div.innerHTML+=`<p class="derecha">vendedor:</p> <br>
+      <p class="derecha">${mensaje.mensaje}</p> <br>  `
+    }
+ else if(mensaje.vendedor && a!==0 && mensaje.usuario_respuesta===usuario){ i=0;   
+        div.innerHTML+=` <br>
+      <p class="derecha">${mensaje.mensaje}</p> <br>  `
+    }}}
+    
+    else
+     {
+      if(mensajes.vendedor===false){++i, a=0;div.innerHTML+=`<p>${mensajes.usuario}:</p> <br>
+      <p>${mensajes.mensaje}</p> <br>  `}
+      
+      else if(mensajes.vendedor===false && i!==0){div.innerHTML+=` <br>
+      <p>${mensajes.mensaje}</p> <br>  `}
+    else if(mensajes.vendedor){ i=0
+        div.innerHTML+=`<p class="derecha">vendedor:</p> <br>
+      <p class="derecha">${mensajes.mensaje}</p> <br>  `
+    }
+ else if(mensajes.vendedor){ i=0; ++a
+        div.innerHTML+=` <br>
+      <p class="derecha">${mensajes.mensaje}</p> <br>  `
+    }}
+    
+ }
+
+ window.enviarmensaje= async function enviarmensaje(usuario){ console.log("se ejecutó la función del onclick")
+ await fetch("/mensajes",{method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({usuario:"vendedor",
+        mensaje: document.getElementById("mensaje").value,
+        vendedor: true,
+        usuario_respuesta: usuario//usuario al que el vendedor responde
+    })
+ })
+ console.log("se envió el mensaje")
+ }
+
+ //------------código----------------
+
+ let usuario= "<%= usuario %>"
+ console.log(usuario)
+ 
+
+
+        //------------websocket--------------------
+
+     socket.on("mensajes",function(mensajes){mensajesuwu=mensajes;
+
+           mostrarmensajes(mensajesuwu,usuario)
+            })
+    
+
+
+    </script>
+</body>
+</html>
