@@ -14,6 +14,7 @@ import session from 'express-session'
 import { log_mensajes_cliente } from './mongo-mensajes-cliente.js'
 import { log_notificaciones_vendedor } from './mongo-notificaciones-vendedor.js'
 import { log_notificaciones_comprador } from './mongo-notificaciones-cliente.js'
+import bcryptjs from 'bcryptjs'
 dotenv.config()
 
 //-----------------------------declaraciones--------------------------
@@ -69,10 +70,11 @@ app.post('/data',async function(req,res){
     console.log(cuenta);
     if(cuenta.length>0){res.setHeader("Content-Type", "text/plain"); 
         return res.send("el usuario ya está tomado")}
+        let hash= await bcryptjs.hash(req.body.contraseña,10)
         
         log.create({
         usuario: req.body.usuario,
-        contraseña: req.body.contraseña
+        contraseña: hash
        })}} catch(error){
     console.log("error:",error)
    };
@@ -90,9 +92,10 @@ app.get('/data',async function(req,res){
 
 app.post("/data/logeado",async function(req,res){
    delete req.session.usuario
-       let cuenta=await log.find({usuario:req.body.usuario, contraseña:req.body.contraseña});
-
-       if(cuenta.length>0){
+ let cuenta=await log.find({usuario:req.body.usuario});
+let comparacion= await bcryptjs.compare(req.body.contraseña, cuenta[0].contraseña)
+        console.log(comparacion)
+       if(comparacion){
         req.session.usuario=req.body.usuario
          res.send("ok")}
 
@@ -124,12 +127,17 @@ app.get("/verproductos",async function(req,res){
    let productos=await log_products.find()
    res.json(productos)
 })
-app.post("/products",upload.single("imagen"),function(req,res){
+app.post("/products",upload.single("imagen"),async function(req,res){
+ let producto= await log_products.find({})
+ let id= producto.length +1
     log_products.create({
         producto_nombre: req.body.nombre,
         producto_descripcion: req.body.descripcion,
         producto_imagen: req.file.filename,
-        producto_precio: req.body.precio
+        producto_precio: req.body.precio,
+        producto_stock: req.body.stock,
+        producto_id: id,
+        null: false
     })
 
     res.send("el producto fue creado con exito")
@@ -148,19 +156,19 @@ app.post("/comprobar-usuario",async function(req,res){ console.log("holaa?")
 })
 
 app.post("/editarnombre",async function(req,res){
-    let producto= await log_products.findOneAndUpdate({producto_nombre:req.body.nombre},{producto_nombre: req.body.nombreeditado},{new: true})
+    let producto= await log_products.findOneAndUpdate({producto_id:req.body.nombre},{producto_nombre: req.body.nombreeditado},{new: true})
 
     res.send({nombreeditado:req.body.nombreeditado})
 })
 
 app.post("/editardescripcion",async function(req,res){
-    let producto= await log_products.findOneAndUpdate({producto_nombre:req.body.nombre},{  producto_descripcion: req.body.descripcioneditada},{new: true})
+    let producto= await log_products.findOneAndUpdate({producto_id:req.body.nombre},{  producto_descripcion: req.body.descripcioneditada},{new: true})
     
     res.send("ok")
 })
 
 app.post("/editarprecio",async function(req,res){
-    let producto= await log_products.findOneAndUpdate({producto_nombre:req.body.nombre},{
+    let producto= await log_products.findOneAndUpdate({producto_id:req.body.nombre},{
         producto_precio: req.body.precioeditado},
     {new: true})
 
@@ -170,7 +178,7 @@ app.post("/editarprecio",async function(req,res){
 })
 
 app.post("/editarimagen",upload.single("editarimagen"),async function(req,res){
-    let producto= await log_products.findOneAndUpdate({producto_nombre:req.body.nombre},{
+    let producto= await log_products.findOneAndUpdate({producto_id:req.body.nombre},{
         producto_imagen: req.file.filename},
     {new: true})
 
@@ -179,8 +187,13 @@ app.post("/editarimagen",upload.single("editarimagen"),async function(req,res){
     res.render("producto-admin",{nombre:req.body.nombre})
 })
 
+app.post("/editar-stock",async function(req,res){
+    let stock= await log_products.findOneAndUpdate({producto_id: req.body.producto},{producto_stock: req.body.stock})
+    res.send("ok")
+})
+
 app.post("/borrarproducto",async function(req,res){ console.log("producto borrado")
-    await log_products.deleteOne({producto_nombre: req.body.producto_nombre})
+    await log_products.findOneAndReplace({producto_id: req.body.producto_id},{null: true})
 
     res.render("tienda-admin")
 })
@@ -191,7 +204,8 @@ app.post("/comentarios",async function(req,res){
     try{ await log_comentarios.create({
          usuario: req.body.usuario,
          comentario: req.body.comentario,
-         producto: req.body.producto
+         producto: req.body.producto,
+         producto_id: req.body.producto_id
      });
 
     let comentario=await log_comentarios.find({}); 
@@ -213,6 +227,7 @@ app.post("/respuesta",async function(req,res){
   await log_respuestas.create({usuario_al_que_se_responde:req.body.usuario,
         comentario: req.body.comentario,
         producto: req.body.producto,
+        producto_id: req.body.producto_id,
         respuesta: req.body.respuesta
     })
 
@@ -262,7 +277,8 @@ app.get("/mensajeria/",function(req,res){
 app.get("/chats",async function(req,res){
    let mensajes=await log_mensajes_cliente.find({})
    let array=[]
-   for(let mensaje of mensajes){array.push(mensaje.usuario)}
+   for(let mensaje of mensajes){if(mensaje.usuario!==undefined && mensaje.usuario_respuesta!==undefined)
+    {array.push(mensaje.usuario,mensaje.usuario_respuesta)}}
    let usuarios_unicos=[...new Set(array)]
 console.log(usuarios_unicos)
 
@@ -278,6 +294,23 @@ app.get("/notificaciones-comprador",async function(req,res){
     let notificaciones= await log_notificaciones_comprador.find({})
     res.json(notificaciones)
 })
+
+app.post("/bajarstock",async function(req,res){
+    let producto= await log_products.find({producto_id: req.body.id})
+    console.log(producto)
+    console.log(producto[0].producto_nombre)
+    if(Number(producto[0].producto_stock)>0){let nuevoproducto= await log_products.findOneAndUpdate({producto_id: producto[0].producto_id},{producto_stock: `${Number(producto[0].producto_stock)-1}`})
+   res.send("ok")}
+    else{res.send("ya no queda stock")}
+   
+})
+
+app.get("/usuarios",async function(req,res){
+    let allusers=[]
+    let usuarios= await log.find({})
+    for(let usuario of usuarios){allusers.push(usuario.usuario)}
+    res.json(allusers)
+})
 //----------------rutas dinámicas--------------------
 
 app.get("/tienda/:nombre",function(req,res){
@@ -286,20 +319,21 @@ app.get("/tienda/:nombre",function(req,res){
 
 })
 
-app.get("/producto/:producto",function(req,res){
+app.get("/producto/:producto/:id",function(req,res){
     if(req.session.usuario==="admin"){console.log(req.session.usuario);
-        return res.render("producto-admin",{nombre: req.params.producto})
+        return res.render("producto-admin",{nombre: req.params.producto, id: req.params.id})
     }
     else{
         res.render("producto",{nombre: req.params.producto,
-        usuario: req.session.usuario
+        usuario: req.session.usuario, id: req.params.id
     })}
 
     console.log(req.session.usuario)
 })
 
-app.get("/mensajeria/:usuario",function(req,res){
+app.get("/mensajeria/:usuario",function(req,res){if(req.session.usuario==="admin"){return res.render("mensajes2-vendedor",{usuario: req.params.usuario})}
     if(req.params.usuario!==req.session.usuario){return res.send("No tiene permiso para acceder a este chat")}
+    
     res.render("mensajes-cliente",{usuario: req.session.usuario})
 })
 
