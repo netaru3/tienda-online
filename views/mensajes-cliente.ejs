@@ -20,10 +20,14 @@
     
     
     <script type="module">
+      //-----------declaraciones de variables----------------
         let usuario="<%= usuario %>"
         let div=document.getElementById("mensajes")
         let socket= io()
-         let i=0; let a=0
+
+        let i=0; let a=0
+
+        //-------------declaraciones de funciones----------------
 
  window.enviarmensaje= async function enviarjmensaje(){ 
  await fetch("/mensajes",{method:"POST",
@@ -37,6 +41,7 @@
  }
 
  function mostrarmensajes(mensajes){
+    
 
 
     if(mensajes.length>1){div.innerHTML="";
@@ -63,7 +68,7 @@
      {if(mensajes[0].vendedor===false && mensajes[0].usuario===usuario && i===0){++i, a=0;div.innerHTML+=`<p class="derecha">${mensajes[0].usuario}:</p> <br>
       <p class="derecha">${mensajes[0].mensaje}</p> <br>  `}
 
-      else if(mensajes[0].vendedor===false && i!==0 && mensajes[0].usuario===usuario){div.innerHTML+=` <br>
+      else if(mensajes[0].vendedor===false && i!==0 && mensajes[0].usuario===usuario){a=0;div.innerHTML+=` <br>
       <p class="derecha">${mensajes[0].mensaje}</p> <br>  `}
       
     else if(mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario && a===0){ i=0; ++a
@@ -76,12 +81,12 @@
     }}
     
  }
-
+        //-------------websocket----------------
  socket.on("mensajes",async function(mensajes){console.log(mensajes)
    let mensajesusuario=  mensajes.filter(element => {
  return element.usuario=== usuario})
   //console.log(mensajesusuario)
-  console.log(mensajesusuario)
+  console.log(mensajes)
   mostrarmensajes(mensajes)
 } );
 
