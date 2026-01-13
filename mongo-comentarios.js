@@ -8,7 +8,8 @@ catch(error){console.log("error:",error)}
 let esquema=new mongoose.Schema({
  usuario: String,
  comentario: String,
- producto: String
+ producto: String,
+ producto_id: Number
 });
 
 export let log_comentarios= mongoose.model("comentarios-tienda-online",esquema)
