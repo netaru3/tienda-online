@@ -6,31 +6,74 @@
     <title>Document</title>
 </head>
 
-
-
 <body>
-    <div id="contenedor"></div>
-    <p>comentarios:</p>
-<div id="comentarios"></div>
-    <button onclick="window.location.href='/mensajeria/<%= usuario %>'">contactar con el vendedor</button>
-    <script src="/socket.io/socket.io.js"></script>
-    <button onclick="comprobar()">comprar</button>
-    
-    <input type="text" placeholder="enviar comentario" id="comentario"> <button onclick="enviarcomentarios()">enviar</button>
-    <script type="module">
-            //-----------declaración de variables---------------
-            let respuestas=[]
-          
-          let usuario= "<%= usuario %>"
-          let socket=io()
-          let productos=await fetch("/verproductos").then(function(res){return res.json()})
 
-          //---------------declaración de funciones------------------
-      function mostrarcomentarios(comentarios){ console.log(respuestas)
+    <div id="contenedor"></div>
+    <button onclick="borrarproducto()"> eliminar producto</button>
+<input type="text" name="editarimagen" id="editarnombre" placeholder="editar nombre">
+<button onclick="enviar()" id="">enviar</button>
+<br>
+
+<form action="/editarimagen" method="post" enctype="multipart/form-data">
+    <input type="file" name="editarimagen" id="editarimagen">
+     <input type="hidden" name="nombre" value="<%= nombre %>">
+    <input type="submit">
+</form>
+<input type="text" id="editardescripcion" placeholder="ingrese la nueva descripcion">
+<button onclick="enviardescripcion()">enviar</button>
+<input type="text" id="editarprecio" placeholder="ingrese el nuevo precio">
+<button onclick="enviarprecio()">enviar</button>
+<input type="text" id="editarstock" placeholder="ingrese el nuevo stock">
+<button onclick="stock()">enviar</button>
+
+<div id="comentarios"></div>
+<script src="/socket.io/socket.io.js"></script>
+    <script type="module">
+
+      //-----declaraciones-----------------------
+      let respuestas=[]
+      let productos=await fetch("/verproductos").then(function(res){return res.json()})
+      let id= "<%= id %>"
+
+      //------------websocket--------------------
+      let socket= io()
+    socket.on("respuestas",function(respuestasdata){
+     respuestas=respuestasdata;
+     console.log(respuestas)
+        })
+ socket.on("comentarios", async function(comentarios){ 
+  console.log(comentarios)
+  let idinterval=  setInterval(() => {
+      if(respuestas.length!==0){ mostrarcomentarios(comentarios); clearInterval(idinterval)}
+    }, 5);
+          
+   
+    
+
+        })
+        
+
+       
+      //----------------comentarios------------------
+
+    window.enviarrespuesta= async function enviarrespuesta(usuario,comentario,numrespuesta){
+     let respuestas= await fetch("/respuesta",{method:"POST",
+      headers:{ "Content-Type":"application/json"},
+      body: JSON.stringify({ usuario: usuario,
+      comentario: comentario,
+      producto:"<%= nombre %>",
+      producto_id: id,
+      respuesta: document.getElementById(`respuesta${numrespuesta}`).value
+      })
+     })
+
+     
+      }
+  
+              function mostrarcomentarios(comentarios){
                let i=0
              const comentariodiv = document.getElementById("comentarios")
              comentariodiv.innerHTML=""
-
             for(let comentario of comentarios){
                let comentusuario= document.createElement("p")
                let coment= document.createElement("p")
@@ -39,13 +82,15 @@
                coment.textContent=comentario.comentario
                document.createElement("br")
                 
-              if(comentario.producto==="<%= nombre %>"){ comentariodiv.innerHTML +=`<p>${comentusuario.textContent} dice:</p>
-              <p>${coment.textContent}</p>
+              if(comentario.producto_id=="<%= id %>"){ comentariodiv.innerHTML +=`<p>${comentusuario.textContent} dice:</p>
+              <p>${coment.textContent}</p> <button onclick="window.location.href='/mensajeria/${comentusuario.textContent}'">contactar con el cliente</button>
+              <input type="text" id="respuesta${i}" placeholder="ingrese una respuesta">
+               <button onclick="enviarrespuesta('${comentusuario.textContent}','${coment.textContent}','${i}')">enviar</button>
               <br> `}
 
               ++i
               for(let respuesta of respuestas){
-                if(respuesta.comentario===coment.textContent && respuesta.usuario_al_que_se_responde===comentusuario.textContent && respuesta.producto==="<%= nombre %>"){
+                if(respuesta.comentario===coment.textContent && respuesta.usuario_al_que_se_responde===comentusuario.textContent && respuesta.producto_id=="<%= id %>"){
                 comentariodiv.innerHTML +=`
               <p>respuesta:${respuesta.respuesta}, @${respuesta.usuario_al_que_se_responde}</p>
               <br> `        
@@ -53,50 +98,110 @@
             }
             
         }
-
-
-        window.enviarcomentarios= async function enviarcomentarios(){
-            await fetch("/comentarios",{method:"POST",
-                headers:{"Content-Type":"application/json"},
-
-                body: JSON.stringify({usuario: usuario,
-                    comentario: document.getElementById("comentario").value,
-                    producto: "<%= nombre %>"})})
-                    
-                    .then(function(res){return res.text()}).then(function(res){
-                if(res==="los visitantes no pueden comentar"){alert(res)}
-            })
-        }
-
-          window.comprobar=async function comprobar(){
-            await fetch("/comprobar-usuario",{method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body: JSON.stringify({producto: "<%= nombre %>"})
-            })
-            
-            .then(function(res){
-               return  res.text()
-            })
-            
-            .then(function(res){ 
-                if(res==="ingrese sesion para comprar"){alert(res)}
-
-                else if(res==="ok"){alert("compra hecha!")}
-            })
-        }
         
+       
+       window.enviar= async function enviar(){
+           let url=  await fetch("/editarnombre",{method:"post",
+            headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({nombre: id,
+    nombreeditado:document.getElementById("editarnombre").value
+  })
 
-        function mostrarproductos(producto){
+ 
+        })
+         let data= await url.json()
+
+         window.location.href=`/producto/${data.nombreeditado}`
+
+   
+       }
+        
+  
+        window.enviarimagen=async function enviarimagen(){
+            let url=  await fetch("/editarnombre",{method:"post",
+            headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({nombre: id,
+    imageneditada:document.getElementById("editarimagen").file
+  })
+
+ 
+        })
+         let data= await url.json()
+            let file=document.getElementById("editarimagen").files[0]
+            document.getElementById("imagen").src=URL.createObjectURL(file)
+        }
+
+        window.enviardescripcion= async function enviardescripcion(){
+             let url=  await fetch("/editardescripcion",{method:"post",
+            headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({descripcion: document.getElementById("descripcion").textContent,
+    descripcioneditada:document.getElementById("editardescripcion").value,
+    nombre: id
+  })
+
+ 
+        })
+         let data= await url.json()
+
+   
+            document.getElementById("descripcion").textContent=document.getElementById("editardescripcion").value
+        }
+        window.enviarprecio=async  function enviarprecio(){
+                let url=  await fetch("/editarprecio",{method:"post",
+            headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({precio: document.getElementById("precio").textContent,
+    precioeditado:document.getElementById("editarprecio").value,
+    nombre: id
+  })
+
+ 
+        })
+         let data= await url.json()
+
+   
+            document.getElementById("descripcion").textContent=document.getElementById("editardescripcion").value
+            document.getElementById("precio").textContent=document.getElementById("editarprecio").value
+        }
+  
+        window.stock= async function stock(){
+          document.getElementById("stock").textContent= document.getElementById("editarstock").value
+
+          await fetch("/editar-stock",{method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({producto:"<%= id %>",
+            stock: document.getElementById("editarstock").value
+            })
+          })
+        }
+
+
+ function mostrarproductos(producto){
         let nombre= document.createElement("h3")
         nombre.textContent=producto.producto_nombre;
+        nombre.id="nombre"
 
         let precio= document.createElement("h4")
         precio.textContent="precio: "+producto.producto_precio
+        precio.id="precio";
 
         let descripcion=document.createElement("p")
         descripcion.textContent=producto.producto_descripcion
+        descripcion.id="descripcion"
+
+        let stock= document.createElement("h4")
+        stock.id="stock"
+        stock.textContent="stock: "+producto.producto_stock
 
    let imagen= document.createElement("img")
+   imagen.id="imagen"
    imagen.src=`/${producto.producto_imagen}`
    imagen.width=500
    console.log(imagen.src)
@@ -105,28 +210,30 @@
    contenedor.appendChild(nombre)
    contenedor.appendChild(imagen)
    contenedor.appendChild(precio)
+  contenedor.appendChild(stock)
    contenedor.appendChild(descripcion)
 
 
 }
 
-            //-------código---------
-            for(let producto of productos){ if(producto.producto_nombre==="<%= nombre %>"){console.log(producto);
-                 mostrarproductos(producto)}}
-
-            
-            //--------websocket----------
-        
-        socket.on("respuestas",function(respuestasdata){
-        respuestas=respuestasdata;
-    console.log("respuestas",respuestas)})
+console.log(id)
+console.log(productos)
+function mostrarproducto(){for(let producto of productos){console.log(producto); if(producto.producto_id=="<%= id %>"){console.log(producto);
+     mostrarproductos(producto)}}}
 
 
-         socket.on("comentarios", function(comentarios){ 
-        let id= setInterval(() => {
-            if(respuestas.length!==0){mostrarcomentarios(comentarios); clearInterval(id)}
-          }, 100);
-            })
+     mostrarproducto()
+
+    window.borrarproducto=async function borrarproducto(){
+      await fetch("/borrarproducto",{method:"POST",
+         headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    producto_id:"<%= id %>"
+  })})
+      window.location.href="/tienda/admin"
+    }
     </script>
 </body>
 </html>
