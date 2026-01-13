@@ -11,7 +11,8 @@
     </style>
 </head>
 <body>
-    
+    <button onclick="nuevochat()">nuevo chat</button>
+    <div id="nuevochat"></div>
     <h1>mensajes:</h1>
     <div id="chats"></div>
     <div id="mensajes"></div>
@@ -26,19 +27,74 @@
     //--------------declaraciones-------------------
     let enviardiv= document.getElementById("enviar")
      let div=document.getElementById("mensajes")
+     let chatsdiv= document.getElementById("chats")
+     let nuevochatdiv= document.getElementById("nuevochat")
+     let usuarios= await fetch("/usuarios").then(function(res){return res}).then(function(res){return res.json()})
         
         let res=await fetch("/chats").then(function(res){return res
         }).then(function(res){return res.json()})
+        console.log(res)
 
         let socket= io()
          let mensajesuwu=[]
-          let i=0; let a=0
+          let i=0; let a=0; let c=0; let b=0
+          console.log(res)
 
         
 
  //------------ declaración de funciones---------------
- function mostrarmensajes(mensajes,usuario){
-   
+ window.buscarusuario=function buscarusuario(){for(let usuario of usuarios){
+  if (document.getElementById("usuarios").value===usuario){console.log("se encontró el usuario")
+    crearbotones(usuario)}
+ }}
+
+ window.nuevochat=function nuevochat(){nuevochatdiv.innerHTML=`<input type="text" placeholder="buscar usuario" id="usuarios">
+    <button onclick="buscarusuario()">enviar</button>`}
+    function crearbotones(usuario){
+          let chat= document.getElementById("chats")
+          let boton=document.createElement("button");
+
+         boton.textContent=usuario
+         boton.id=`${usuario}`
+         console.log(usuario)
+
+        boton.onclick=async function(){socket.off("mensajes")
+           enviardiv.innerHTML=`  <input type="text" placeholder='escriba un mensaje' id='mensaje'>
+         <button id='mensajeboton' >enviar</button>`
+         
+         socket.on("mensajes",function(mensajes){mensajesuwu.push(mensajes[0]);
+          console.log("este es mensajesuwu", mensajesuwu)
+           if(mensajes[0].vendedor===false) {return  mostrarmensajes(mensajesuwu,usuario)}
+            })
+            mostrarmensajes(mensajesuwu,usuario);
+            
+      
+
+        document.getElementById("mensajeboton").onclick=function(){enviarmensaje(usuario); console.log("input:",document.getElementById("mensaje").value)
+            let id= setInterval(() => { console.log("se ejecutó el mensajeboton onclick")
+              try{
+              setTimeout(() => {console.log("se ejecutó el setTimeout ")
+                if(mensajesuwu[mensajesuwu.length-1].mensaje!==document.getElementById("mensaje").value){
+                  console.log("mensajesuwu es:",mensajesuwu[mensajesuwu.length-1].mensaje,"el input es",document.getElementById("mensaje").value)
+                }
+           else{mostrarmensajes(mensajesuwu,usuario); clearInterval(id);  document.getElementById("mensaje").value=""}
+          }, 500);
+         }catch{
+            
+            setTimeout(() => {if(mensajesuwu[mensajesuwu.length-1].mensaje!==document.getElementById("mensaje").value){new Error}
+           else{mostrarmensajes(mensajesuwu,usuario);  document.getElementById("mensaje").value=""}
+          }, 500)}
+            }, 600);
+
+  
+         }}
+
+        chat.appendChild(boton)
+        }  
+ function mostrarmensajes(mensajes,usuario){ console.log("mensajes: ",mensajes)
+ for(let mensaje0 of mensajes){ console.log(mensaje0); if(mensaje0.usuario_respuesta===usuario){++c}
+if(mensaje0.usuario===usuario){++c}}
+ if(c>1 && div.innerHTML===""){div.innerHTML=""}
      if(mensajes.length===1 && mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario){div.innerHTML+=` <br>
       <p class="derecha">${mensajes[0].mensaje}</p> <br>  `
       return}
@@ -100,49 +156,21 @@
  //------------código----------------
 
         for(let usuario of res){ 
-          let chat= document.getElementById("chats")
-          let boton=document.createElement("button");
-
-         boton.textContent=usuario
-         boton.id=`${usuario}`
-         console.log(usuario)
-
-        boton.onclick=async function(){ enviardiv.innerHTML=`  <input type="text" placeholder='escriba un mensaje' id='mensaje'>
-         <button id='mensajeboton' >enviar</button>`
-         socket.on("mensajes",function(mensajes){mensajesuwu=mensajes;
-           if(mensajes[0].vendedor===false) { mostrarmensajes(mensajesuwu,usuario)}
-            })
-            mostrarmensajes(mensajesuwu,usuario);
-            
-      
-
-        document.getElementById("mensajeboton").onclick=function(){enviarmensaje(usuario)
-            let id= setInterval(() => { console.log("se ejecutó el mensajeboton onclick")
-              try{
-              setTimeout(() => {console.log("se ejecutó el setTimeout ")
-                if(mensajesuwu[mensajesuwu.length-1].mensaje!==document.getElementById("mensaje").value){
-                  console.log("mensajesuwu es:",mensajesuwu[mensajesuwu.length-1].mensaje,"el input es",document.getElementById("mensaje").value)
-                }
-           else{mostrarmensajes(mensajesuwu,usuario); clearInterval(id);  document.getElementById("mensaje").value=""}
-          }, 500);
-         }catch{
-            
-            setTimeout(() => {if(mensajesuwu[mensajesuwu.length-1].mensaje!==document.getElementById("mensaje").value){new Error}
-           else{mostrarmensajes(mensajesuwu,usuario);  document.getElementById("mensaje").value=""}
-          }, 500)}
-            }, 600);
-
-  
-         }}
-
-        chat.appendChild(boton)
-         
+        
+         crearbotones(usuario)
         }
 
         //------------websocket--------------------
+      function socketfunction(mensajes){mensajesuwu=mensajes
+          console.log("mensajesuwu es:",mensajesuwu);
+          socket.off("mensajes",socketfunction)
+        }
+          socket.on("mensajes",socketfunction)
 
-        socket.on("mensajes",function(mensajes){mensajesuwu=mensajes
- })
+    
+
+  
+        
     
 
 
