@@ -11,10 +11,12 @@
     </style>
 </head>
 <body>
+    
     <h1 id="bienvenida">bienvenido </h1> 
     <button onclick="redireccionarlogin()" id="login">iniciar sesion</button>
     <button onclick="redireccionarregistro()" id="registro">registrarse</button>
     <button onclick="notificaciones()" class="derecha">notificaciones</button>
+    <button onclick="window.location.href=`/mensajeria/<%= nombre %>`">mensajes</button>
     <div id="notificaciones"></div>
      <button onclick="cerrarsesion()" id="sesion">cerrar sesión</button>
     <h2>Mira todo los productos que tenemos!</h2>
@@ -67,7 +69,7 @@
     
 
     console.log(productos)
-    function mostrarproductos(i){
+    function mostrarproductos(i){ if(productos[i].null===false){
         let nombre= document.createElement("h3")
         nombre.textContent=productos[i].producto_nombre;
 
@@ -86,11 +88,11 @@
    contenedor.innerHTML +=`
     <div class="card-header">
         <div class="card-name">
-            <a href="/producto/${nombre.textContent}">${nombre.textContent}</a>
+            <a href="/producto/${nombre.textContent}/${i+1}">${nombre.textContent}</a>
         </div>
     </div>
 
-    <a href="/producto/${nombre.textContent}">
+    <a href="/producto/${nombre.textContent}/${i+1}">
         <div class="card-image-container">
             <img src="${imagen.src}" alt="${nombre.textContent}" width="500" class="card-image">
         </div>
@@ -98,7 +100,7 @@
     
      <div class="card-header">
         <div class="card-name">
-            <a href="/producto/${nombre.textContent}">${precio.textContent}</a>
+            <a href="/producto/${nombre.textContent}/${i+1}">${precio.textContent}</a>
         </div>
     </div>
 
@@ -107,11 +109,14 @@
             ${descripcion.textContent}
         </div>
     </div>
-`
+    <p hidden id="id">${i+1}</p>
+`}
 
 
 
 }
+
+
         //------------codigo-----------------
          if(nombre==="visitante"){document.getElementById("sesion").remove()}
 
