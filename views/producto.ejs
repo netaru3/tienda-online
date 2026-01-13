@@ -10,33 +10,42 @@
 
 <body>
     <div id="contenedor"></div>
- <p>comentarios:</p>
+    <p>comentarios:</p>
 <div id="comentarios"></div>
     <button onclick="window.location.href='/mensajeria/<%= usuario %>'">contactar con el vendedor</button>
     <script src="/socket.io/socket.io.js"></script>
     <button onclick="comprobar()">comprar</button>
-   
+    
     <input type="text" placeholder="enviar comentario" id="comentario"> <button onclick="enviarcomentarios()">enviar</button>
     <script type="module">
+            //-----------declaración de variables---------------
+            let respuestas=[]
+            let id="<%= id %>"
+          let usuario= "<%= usuario %>"
+          let socket=io()
+          let productos=await fetch("/verproductos").then(function(res){return res.json()})
 
-      function mostrarcomentarios(comentarios){
+          //---------------declaración de funciones------------------
+      function mostrarcomentarios(comentarios){ console.log(respuestas)
                let i=0
              const comentariodiv = document.getElementById("comentarios")
              comentariodiv.innerHTML=""
+
             for(let comentario of comentarios){
                let comentusuario= document.createElement("p")
                let coment= document.createElement("p")
+
                comentusuario.textContent= comentario.usuario;
                coment.textContent=comentario.comentario
                document.createElement("br")
                 
-              if(comentario.producto==="<%= nombre %>"){ comentariodiv.innerHTML +=`<p>${comentusuario.textContent} dice:</p>
+              if(comentario.producto_id=="<%= id %>"){ comentariodiv.innerHTML +=`<p>${comentusuario.textContent} dice:</p>
               <p>${coment.textContent}</p>
               <br> `}
 
               ++i
               for(let respuesta of respuestas){
-                if(respuesta.comentario===coment.textContent && respuesta.usuario_al_que_se_responde===comentusuario.textContent && respuesta.producto==="<%= nombre %>"){
+                if(respuesta.comentario===coment.textContent && respuesta.usuario_al_que_se_responde===comentusuario.textContent && respuesta.producto_id=="<%= id %>"){
                 comentariodiv.innerHTML +=`
               <p>respuesta:${respuesta.respuesta}, @${respuesta.usuario_al_que_se_responde}</p>
               <br> `        
@@ -44,47 +53,50 @@
             }
             
         }
-        let respuestas=[]
-          
-        let usuario= "<%= usuario %>"
-        let socket=io()
-socket.on("respuestas",function(respuestasdata){
-     respuestas=respuestasdata;
-     console.log(respuestas)});
-        socket.on("comentarios", async function(comentarios){ 
-     setTimeout(() => {
-            mostrarcomentarios(comentarios)
-     }, 50);
-    
 
-        })
-        
-       
+
         window.enviarcomentarios= async function enviarcomentarios(){
             await fetch("/comentarios",{method:"POST",
                 headers:{"Content-Type":"application/json"},
+
                 body: JSON.stringify({usuario: usuario,
                     comentario: document.getElementById("comentario").value,
-                    producto: "<%= nombre %>"
-                })
-            }).then(function(res){return res.text()}).then(function(res){
+                    producto: "<%= nombre %>",
+                producto_id: id})})
+                    
+                    .then(function(res){return res.text()}).then(function(res){
                 if(res==="los visitantes no pueden comentar"){alert(res)}
             })
         }
-        
-        window.comprobar=async function comprobar(){
-            await fetch("/comprobarusuario").then(function(res){
+
+          window.comprobar=async function comprobar(){
+            let stock=document.getElementById("stock").textContent.split(" ")[1]
+            console.log("el stock es",stock)
+             document.getElementById("stock").textContent=`stock: ${Number(stock)-1}`
+            await fetch("/bajarstock",{method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({id:"<%= id %>"
+                })
+            })
+
+            await fetch("/comprobar-usuario",{method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({producto: "<%= nombre %>"})
+            })
+            
+            .then(function(res){
                return  res.text()
-            }).then(function(res){ console.log(res)
+            })
+            
+            .then(function(res){ 
                 if(res==="ingrese sesion para comprar"){alert(res)}
-                else{alert("compra hecha!")}
+
+                else if(res==="ok"){alert("compra hecha!")}
             })
         }
-        let productos=await fetch("/verproductos").then(function(res){return res.json()})
+        
 
-
-    console.log(productos)
- function mostrarproductos(producto){
+        function mostrarproductos(producto){
         let nombre= document.createElement("h3")
         nombre.textContent=producto.producto_nombre;
 
@@ -93,6 +105,10 @@ socket.on("respuestas",function(respuestasdata){
 
         let descripcion=document.createElement("p")
         descripcion.textContent=producto.producto_descripcion
+
+        let stock= document.createElement("h4")
+        stock.id="stock"
+        stock.textContent="stock: "+ producto.producto_stock
 
    let imagen= document.createElement("img")
    imagen.src=`/${producto.producto_imagen}`
@@ -104,21 +120,30 @@ socket.on("respuestas",function(respuestasdata){
    contenedor.appendChild(imagen)
    contenedor.appendChild(precio)
    contenedor.appendChild(descripcion)
+   contenedor.appendChild(stock)
 
 
 }
 
+console.log(id)
 
-for(let producto of productos){ if(producto.producto_nombre==="<%= nombre %>"){console.log(producto);
-     mostrarproductos(producto)}}
+            //-------código---------
+            for(let producto of productos){ if(producto.producto_id==id){console.log(producto);
+                 mostrarproductos(producto)}}
 
-      socket.on("comentarios", function(comentarios){ console.log("comentarios recibidos")
-            mostrarcomentarios(comentarios)
+            
+            //--------websocket----------
+        
+        socket.on("respuestas",function(respuestasdata){
+        respuestas=respuestasdata;
+    console.log("respuestas",respuestas)})
 
 
-        })
-
-    
+         socket.on("comentarios", function(comentarios){ 
+        let id= setInterval(() => {
+            if(respuestas.length!==0){mostrarcomentarios(comentarios); clearInterval(id)}
+          }, 100);
+            })
     </script>
 </body>
 </html>
