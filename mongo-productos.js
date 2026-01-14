@@ -9,7 +9,10 @@ let esquema=new mongoose.Schema({
  producto_nombre: String,
  producto_descripcion: String,
  producto_imagen: String,
- producto_precio: String
+ producto_precio: String,
+ producto_stock: String,
+ producto_id: Number,
+ null: Boolean
 });
 
 export let log_products= mongoose.model("productos-tienda-online",esquema)
