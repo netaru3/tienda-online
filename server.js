@@ -276,9 +276,13 @@ app.get("/mensajeria/",function(req,res){
 
 app.get("/chats",async function(req,res){
    let mensajes=await log_mensajes_cliente.find({})
+   console.log("mensajes:",mensajes)
    let array=[]
-   for(let mensaje of mensajes){if(mensaje.usuario!==undefined && mensaje.usuario_respuesta!==undefined)
-    {array.push(mensaje.usuario,mensaje.usuario_respuesta)}}
+   for(let mensaje of mensajes){if(mensaje.usuario!==undefined && mensaje.usuario!=="admin")
+    {array.push(mensaje.usuario)}
+
+if(mensaje.usuario_respuesta!==undefined && mensaje.usuario==="admin"){array.push(mensaje.usuario_respuesta)}}
+
    let usuarios_unicos=[...new Set(array)]
 console.log(usuarios_unicos)
 
