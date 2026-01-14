@@ -30,11 +30,17 @@
      let chatsdiv= document.getElementById("chats")
      let nuevochatdiv= document.getElementById("nuevochat")
      let usuarios= await fetch("/usuarios").then(function(res){return res}).then(function(res){return res.json()})
-        
-        let res=await fetch("/chats").then(function(res){return res
+     let res=await fetch("/chats").then(function(res){return res
         }).then(function(res){return res.json()})
         console.log(res)
 
+      setInterval(async() => {
+         res=await fetch("/chats").then(function(res){return res
+        }).then(function(res){return res.json()})
+        console.log(res)
+
+      }, 1000);
+        
         let socket= io()
          let mensajesuwu=[]
           let i=0; let a=0; let c=0; let b=0
@@ -154,7 +160,14 @@ if(mensaje0.usuario===usuario){++c}}
  }
 
  //------------código----------------
-
+  setInterval(() => {
+     chatsdiv.innerHTML=""
+        for(let usuario of res){ 
+        
+         crearbotones(usuario)
+        }
+  }, 1000);      
+  chatsdiv.innerHTML=""
         for(let usuario of res){ 
         
          crearbotones(usuario)
