@@ -85,6 +85,35 @@
    console.log(imagen.src)
  
    let contenedor= document.getElementById("contenedor")
+    if(productos[i].producto_imagen[0].filename){
+     contenedor.innerHTML +=`
+    <div class="card-header">
+        <div class="card-name">
+            <a href="/producto/${nombre.textContent}/${i+1}">${nombre.textContent}</a>
+        </div>
+    </div>
+
+    <a href="/producto/${nombre.textContent}/${i+1}">
+        <div class="card-image-container">
+            <img src="/${productos[i].producto_imagen[0].filename}" alt="${nombre.textContent}" width="500" class="card-image">
+        </div>
+    </a>
+
+    <div class="card-body">
+        <div class="card-description">
+            ${descripcion.textContent}
+        </div>
+        
+    </div>
+    <div class="card-header">
+        <div class="card-name">
+            <a href="/producto/${nombre.textContent}/${i+1}">${precio.textContent}</a>
+        </div>
+    </div>
+    <br>
+`
+    return
+   }
    contenedor.innerHTML +=`
     <div class="card-header">
         <div class="card-name">
