@@ -45,8 +45,9 @@
     //--------------declaración de funciones-------------------
      window.notificaciones= function notificaciones(){ let div= document.getElementById("notificaciones"); div.innerHTML=""
         if(a===0){
-        for(let notificacion of notificaciones1){
+        for(let notificacion of notificaciones1){ if(notificacion.usuario===nombre){
             div.innerHTML+=`<p class="derecha">notificacion: ${notificacion.notificacion}</p> <br>`; ++a}
+            }
     return}
        if(a!==0){div.innerHTML="", a=0}
     }
@@ -147,10 +148,10 @@
 
 
         //------------codigo-----------------
-         if(nombre==="visitante"){document.getElementById("sesion").remove()}
+         
 
         if(nombre==="undefined"){nombre="visitante"}
-
+if(nombre==="visitante"){document.getElementById("sesion").remove()}
     document.getElementById("bienvenida").textContent+=" "+nombre
 
     if(nombre!=="visitante"){document.getElementById("login").remove();
