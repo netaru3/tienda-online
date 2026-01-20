@@ -327,7 +327,7 @@ app.get("/comprar",async function(req,res){console.log("comprar")
                 email: "test_user_123456@testuser.com"  // Email de prueba
             },
             back_urls:{
-                success: `https://tienda-online-5jo4.onrender.com/${req.session.usuario}`,
+                success: `https://tienda-online-5jo4.onrender.com/tienda/${req.session.usuario}`,
                 failure: "http://localhost:3000/pago-fallido",
                 pending: "http://localhost:3000/pago-pendiente"
             },
