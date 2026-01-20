@@ -1,6 +1,6 @@
 //------------------------------importaciones-------------------------
 import express from 'express'
-import {log} from './mongo.js' 
+import {log} from './mongo.js'
 import {log_products} from './mongo-productos.js'
 import {createServer} from 'http'
 import {Server} from 'socket.io'
