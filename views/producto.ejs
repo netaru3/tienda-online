@@ -7,7 +7,7 @@
 </head>
 
 
- 
+
 <body>
     <div id="contenedor"></div>
     <p>comentarios:</p>
@@ -19,6 +19,7 @@
     <input type="text" placeholder="enviar comentario" id="comentario"> <button onclick="enviarcomentarios()">enviar</button>
     <script type="module">
             //-----------declaración de variables---------------
+            let i=0
             let respuestas=[]
             let id="<%= id %>"
           let usuario= "<%= usuario %>"
@@ -70,14 +71,7 @@
         }
 
           window.comprobar=async function comprobar(){
-            let stock=document.getElementById("stock").textContent.split(" ")[1]
-            console.log("el stock es",stock)
-             document.getElementById("stock").textContent=`stock: ${Number(stock)-1}`
-            await fetch("/bajarstock",{method:"POST",
-                headers:{"Content-Type":"application/json"},
-                body: JSON.stringify({id:"<%= id %>"
-                })
-            })
+            
 
             await fetch("/comprobar-usuario",{method:"POST",
                 headers:{"Content-Type":"application/json"},
@@ -88,15 +82,22 @@
                return  res.text()
             })
             
-            .then(function(res){ 
+            .then(async function(res){ 
                 if(res==="ingrese sesion para comprar"){alert(res)}
 
-                else if(res==="ok"){alert("compra hecha!")}
+                else if(res==="ok"){ let stock=document.getElementById("stock").textContent.split(" ")[1]
+            console.log("el stock es",stock)
+             document.getElementById("stock").textContent=`stock: ${Number(stock)-1}`
+
+                    await fetch("/comprar").then(function(data){
+                    return data.json()
+                }).then(function(data){window.location.href=data.init_point})}
             })
         }
         
 
         function mostrarproductos(producto){
+            let contenedor= document.getElementById("contenedor")
         let nombre= document.createElement("h3")
         nombre.textContent=producto.producto_nombre;
 
@@ -109,13 +110,23 @@
         let stock= document.createElement("h4")
         stock.id="stock"
         stock.textContent="stock: "+ producto.producto_stock
-
+ if(producto.producto_imagen[0].filename){ contenedor.appendChild(nombre)
+    for(let imagen1 of producto.producto_imagen){
+        let imagen= document.createElement("img")
+   imagen.src=`/${imagen1.filename}`
+    
+   contenedor.appendChild(imagen)
+   contenedor.appendChild(precio)
+   contenedor.appendChild(descripcion)
+   contenedor.appendChild(stock)
+    } return
+ }
    let imagen= document.createElement("img")
    imagen.src=`/${producto.producto_imagen}`
    imagen.width=500
    console.log(imagen.src)
  
-   let contenedor= document.getElementById("contenedor")
+   
    contenedor.appendChild(nombre)
    contenedor.appendChild(imagen)
    contenedor.appendChild(precio)
