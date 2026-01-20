@@ -148,14 +148,15 @@
     contraseña: document.getElementById("contraseña").value
   })
 }).then(function(res){
+    
+   return res.text()
+}).then(function(res){
     if(res!=="error en el inicio de sesión"){
         localStorage.setItem("token",res.token)
-    window.location.href=`/tienda/${document.getElementById("usuario").value}`;
+    window.location.href=`http://localhost:3000/tienda/${document.getElementById("usuario").value}`;
     socket.emit("html",function(){console.log(res)
         return res})
 }
-   return res.text()
-}).then(function(res){
     if(res==="error en el inicio de sesión"){alert(res)
    }
  
