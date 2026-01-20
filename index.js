@@ -97,13 +97,16 @@ app.get('/data',async function(req,res){
 app.post("/data/logeado",async function(req,res){
    delete req.session.usuario
  let cuenta=await log.find({usuario:req.body.usuario});
-try{let comparacion= await bcryptjs.compare(req.body.contraseña, cuenta[0].contraseña)}catch(error){res.send("error en el inicio de sesión"); 
-    console.log("se ejecutó el catch");return}
-       if(comparacion){
-        req.session.usuario=req.body.usuario
+try{let comparacion= await bcryptjs.compare(req.body.contraseña, cuenta[0].contraseña)
+    if(comparacion){
+        req.session.usuario=req.body.usuario; console.log("se ejecutó la comparación")
          res.send("ok")}
 
          else {res.send("error en el inicio de sesión")}
+         
+}catch(error){res.send("error en el inicio de sesión"); 
+    console.log("se ejecutó el catch");return}
+       
 })
 
 app.get("/tienda/cerrarsesion",function(req,res){
@@ -377,7 +380,7 @@ app.post("/webhook", async function(req, res) {
 //----------------rutas dinámicas--------------------
 
 app.get("/tienda/:nombre",function(req,res){
-    console.log(req.session.usuario)
+    console.log("usuario",req.session.usuario)
     if(req.session.usuario===undefined && req.query.external_reference===undefined){return res.sendFile("login.html",{root:import.meta.dirname})}
      res.render("tienda",{nombre: req.session.usuario})
 
