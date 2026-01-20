@@ -385,7 +385,7 @@ app.get("/tienda/:nombre",function(req,res){
 
 app.get("/producto/:producto/:id",function(req,res){ req.session.producto_id= req.params.id
     if(req.session.usuario==="admin"){console.log(req.session.usuario);
-        return res.render("producto-admin",{nombre: req.params.producto, id: req.params.id})
+         res.render("producto-admin",{nombre: req.params.producto, id: req.params.id}); return
     }
     else{
         res.render("producto",{nombre: req.params.producto,
