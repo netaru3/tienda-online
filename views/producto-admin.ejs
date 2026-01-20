@@ -184,6 +184,7 @@
 
 
  function mostrarproductos(producto){
+      let contenedor= document.getElementById("contenedor")
         let nombre= document.createElement("h3")
         nombre.textContent=producto.producto_nombre;
         nombre.id="nombre"
@@ -199,6 +200,17 @@
         let stock= document.createElement("h4")
         stock.id="stock"
         stock.textContent="stock: "+producto.producto_stock
+        if(producto.producto_imagen[0].filename){ contenedor.appendChild(nombre)
+    for(let imagen1 of producto.producto_imagen){
+        let imagen= document.createElement("img")
+   imagen.src=`/${imagen1.filename}`
+    
+   contenedor.appendChild(imagen)
+   contenedor.appendChild(precio)
+   contenedor.appendChild(descripcion)
+   contenedor.appendChild(stock)
+    } return
+ }
 
    let imagen= document.createElement("img")
    imagen.id="imagen"
@@ -206,7 +218,7 @@
    imagen.width=500
    console.log(imagen.src)
  
-   let contenedor= document.getElementById("contenedor")
+   
    contenedor.appendChild(nombre)
    contenedor.appendChild(imagen)
    contenedor.appendChild(precio)
