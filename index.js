@@ -313,14 +313,15 @@ app.get("/comprar",async function(req,res){console.log("comprar")
     let producto= await log_products.find({producto_id: req.session.producto_id})
     console.log("producto:",producto)
     let precio1= Number(producto[0].producto_precio.match(/\d+/))
+    let unidad=producto[0].producto_precio.match(/[^\d]+/g).toString()
     console.log("precio1:",precio1)
- if(Number(producto[0].producto_stock)>0){
+    async function preferencia(unidad){if(Number(producto[0].producto_stock)>0){
     try{
         const body= {
             items:[{title: producto[0].producto_nombre,
                 unit_price: precio1,
                 quantity:1,
-                currency_id:"UYU"
+                currency_id:unidad
             }],  external_reference:req.session.usuario,
             metadata:{id: req.session.producto_id},
              payer: {  // ← ESTO ES LO QUE FALTA
@@ -337,7 +338,11 @@ app.get("/comprar",async function(req,res){console.log("comprar")
         console.log("init_point:",response.init_point)
         res.json({init_point: response.init_point})
     }catch(error){console.log("error:", error)}}
-    else{res.send("no hay stock")}
+    else{res.send("no hay stock")}}
+
+    if(unidad==="$"){preferencia("UYU")}
+        else if(unidad.toLowerCase()==="us$"){preferencia("USD")}
+ 
 })
 
 app.post("/webhook", async function(req, res) {
@@ -363,6 +368,7 @@ app.post("/webhook", async function(req, res) {
              }catch(error) {
             console.error("❌ Error procesando el pago:", error);
         }
+        
             
             
             
