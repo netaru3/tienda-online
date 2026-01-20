@@ -85,7 +85,7 @@
             .then(async function(res){ 
                 if(res==="ingrese sesion para comprar"){alert(res)}
 
-                else if(res==="ok" && document.getElementById("stock").textContent.split(" ")[1]>0){ let stock=document.getElementById("stock").textContent.split(" ")[1]
+                else if(res==="ok" && Number(document.getElementById("stock").textContent.split(" ")[1])>0){ let stock=document.getElementById("stock").textContent.split(" ")[1]
             console.log("el stock es",stock)
              document.getElementById("stock").textContent=`stock: ${Number(stock)-1}`
 
