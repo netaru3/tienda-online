@@ -302,10 +302,6 @@ app.get("/notificaciones-comprador",async function(req,res){
     res.json(notificaciones)
 })
 
-app.post("/bajarstock",async function(req,res){
-    
-})
-
 app.get("/usuarios",async function(req,res){
     let allusers=[]
     let usuarios= await log.find({})
@@ -331,11 +327,11 @@ app.get("/comprar",async function(req,res){console.log("comprar")
                 email: "test_user_123456@testuser.com"  // Email de prueba
             },
             back_urls:{
-                success: `https://tienda-online-production-a6d6.up.railway.app/tienda/${req.session.usuario}`,
+                success: `https://tienda-online-5jo4.onrender.com/${req.session.usuario}`,
                 failure: "http://localhost:3000/pago-fallido",
                 pending: "http://localhost:3000/pago-pendiente"
             },
-            notification_url: "http://localhost:3000/webhook"
+            notification_url: "https://tienda-online-5jo4.onrender.com/webhook"
         };
         const response= await preference.create({body});
         console.log("init_point:",response.init_point)
