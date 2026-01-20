@@ -97,8 +97,8 @@ app.get('/data',async function(req,res){
 app.post("/data/logeado",async function(req,res){
    delete req.session.usuario
  let cuenta=await log.find({usuario:req.body.usuario});
-let comparacion= await bcryptjs.compare(req.body.contraseña, cuenta[0].contraseña)
-        console.log(comparacion)
+try{let comparacion= await bcryptjs.compare(req.body.contraseña, cuenta[0].contraseña)}catch(error){res.send("error en el inicio de sesión"); 
+    console.log("se ejecutó el catch");return}
        if(comparacion){
         req.session.usuario=req.body.usuario
          res.send("ok")}
@@ -334,7 +334,7 @@ app.get("/comprar",async function(req,res){console.log("comprar")
             },
             notification_url: "https://tienda-online-5jo4.onrender.com/webhook"
         };
-        const response= await preference.create({body});
+        const response= await preference.create({body});    
         console.log("init_point:",response.init_point)
         res.json({init_point: response.init_point})
     }catch(error){console.log("error:", error)}}
@@ -384,8 +384,9 @@ app.get("/tienda/:nombre",function(req,res){
 })
 
 app.get("/producto/:producto/:id",function(req,res){ req.session.producto_id= req.params.id
+    console.log(req.session.usuario)
     if(req.session.usuario==="admin"){console.log(req.session.usuario);
-         res.render("producto-admin",{nombre: req.params.producto, id: req.params.id}); return
+     res.render("producto-admin",{nombre: req.params.producto, id: req.params.id});return
     }
     else{
         res.render("producto",{nombre: req.params.producto,
