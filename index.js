@@ -15,10 +15,11 @@ import { log_mensajes_cliente } from './mongo-mensajes-cliente.js'
 import { log_notificaciones_vendedor } from './mongo-notificaciones-vendedor.js'
 import { log_notificaciones_comprador } from './mongo-notificaciones-cliente.js'
 import bcryptjs from 'bcryptjs'
+import {MercadoPagoConfig,Preference,Payment} from 'mercadopago'
 dotenv.config()
 
 //-----------------------------declaraciones--------------------------
-         
+        
 //---------------------------- servidores-----------------------------
 let app= express()
 const server= createServer(app)
@@ -27,6 +28,9 @@ const IO= new Server(server)
 //---------------------------configuración-----------------------------
 app.set("views",path.join(import.meta.dirname,"views"))
 app.set("view engine","ejs")
+const cliente=new MercadoPagoConfig({accessToken: process.env.TOKEN})
+ const payment = new Payment(cliente);
+const preference= new Preference(cliente)
 
 const storage = multer.diskStorage({ destination: function(req,file,cb){cb(null,"public")},
     filename: function(req,file,cb){
@@ -127,13 +131,13 @@ app.get("/verproductos",async function(req,res){
    let productos=await log_products.find()
    res.json(productos)
 })
-app.post("/products",upload.single("imagen"),async function(req,res){
+app.post("/products",upload.array("imagen",6),async function(req,res){
  let producto= await log_products.find({})
  let id= producto.length +1
     log_products.create({
         producto_nombre: req.body.nombre,
         producto_descripcion: req.body.descripcion,
-        producto_imagen: req.file.filename,
+        producto_imagen: req.files,
         producto_precio: req.body.precio,
         producto_stock: req.body.stock,
         producto_id: id,
@@ -143,7 +147,7 @@ app.post("/products",upload.single("imagen"),async function(req,res){
     res.send("el producto fue creado con exito")
 })
 
-app.post("/comprobar-usuario",async function(req,res){ console.log("holaa?")
+app.post("/comprobar-usuario",async function(req,res){
     if (req.session.usuario===undefined){return res.send("ingrese sesion para comprar")}
     
    try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
@@ -285,7 +289,6 @@ if(mensaje.usuario_respuesta!==undefined && mensaje.usuario==="admin"){array.pus
 
    let usuarios_unicos=[...new Set(array)]
 console.log(usuarios_unicos)
-
 res.json(usuarios_unicos)
 })
 
@@ -300,13 +303,7 @@ app.get("/notificaciones-comprador",async function(req,res){
 })
 
 app.post("/bajarstock",async function(req,res){
-    let producto= await log_products.find({producto_id: req.body.id})
-    console.log(producto)
-    console.log(producto[0].producto_nombre)
-    if(Number(producto[0].producto_stock)>0){let nuevoproducto= await log_products.findOneAndUpdate({producto_id: producto[0].producto_id},{producto_stock: `${Number(producto[0].producto_stock)-1}`})
-   res.send("ok")}
-    else{res.send("ya no queda stock")}
-   
+    
 })
 
 app.get("/usuarios",async function(req,res){
@@ -315,15 +312,76 @@ app.get("/usuarios",async function(req,res){
     for(let usuario of usuarios){allusers.push(usuario.usuario)}
     res.json(allusers)
 })
+
+app.get("/comprar",async function(req,res){console.log("comprar")
+    let producto= await log_products.find({producto_id: req.session.producto_id})
+    console.log("producto:",producto)
+    let precio1= Number(producto[0].producto_precio.match(/\d+/))
+    console.log("precio1:",precio1)
+ if(Number(producto[0].producto_stock)>0){
+    try{
+        const body= {
+            items:[{title: producto[0].producto_nombre,
+                unit_price: precio1,
+                quantity:1,
+                currency_id:"UYU"
+            }],  external_reference:req.session.usuario,
+            metadata:{id: req.session.producto_id},
+             payer: {  // ← ESTO ES LO QUE FALTA
+                email: "test_user_123456@testuser.com"  // Email de prueba
+            },
+            back_urls:{
+                success: `https://tienda-online-production-a6d6.up.railway.app/tienda/${req.session.usuario}`,
+                failure: "http://localhost:3000/pago-fallido",
+                pending: "http://localhost:3000/pago-pendiente"
+            },
+            notification_url: "http://localhost:3000/webhook"
+        };
+        const response= await preference.create({body});
+        console.log("init_point:",response.init_point)
+        res.json({init_point: response.init_point})
+    }catch(error){console.log("error:", error)}}
+    else{res.send("no hay stock")}
+})
+
+app.post("/webhook", async function(req, res) {
+    console.log("Webhook recibido:", req.body);
+    
+    const { type, data } = req.body;
+    
+    // MercadoPago envía diferentes tipos de notificaciones
+        try {
+            // Aquí procesás la notificación del pago
+            const paymentId = data.id;
+            const paymentinfo= await payment.get({id:paymentId})
+            
+            // Opcional: Obtener más detalles del pago
+            // const payment = await Payment.get({ id: paymentId });
+             if(paymentinfo.status==="approved"){ console.log("pago aprobado")
+                let producto= await log_products.find({producto_id: paymentinfo.metadata.id})
+    
+    if(Number(producto[0].producto_stock)>0){let nuevoproducto= await log_products.findOneAndUpdate({producto_id: producto[0].producto_id},{producto_stock: `${Number(producto[0].producto_stock)-1}`})
+   }}
+   
+                
+             }catch(error) {
+            console.error("❌ Error procesando el pago:", error);
+        }
+            
+            
+            
+       res.sendStatus(200)  } 
+    )
 //----------------rutas dinámicas--------------------
 
 app.get("/tienda/:nombre",function(req,res){
-    if(req.session.usuario===undefined){return res.sendFile("login.html",{root:import.meta.dirname})}
+    console.log(req.session.usuario)
+    if(req.session.usuario===undefined && req.query.external_reference===undefined){return res.sendFile("login.html",{root:import.meta.dirname})}
      res.render("tienda",{nombre: req.session.usuario})
 
 })
 
-app.get("/producto/:producto/:id",function(req,res){
+app.get("/producto/:producto/:id",function(req,res){ req.session.producto_id= req.params.id
     if(req.session.usuario==="admin"){console.log(req.session.usuario);
         return res.render("producto-admin",{nombre: req.params.producto, id: req.params.id})
     }
