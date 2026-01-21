@@ -109,6 +109,10 @@ try{let comparacion= await bcryptjs.compare(req.body.contraseña, cuenta[0].cont
        
 })
 
+app.get("/tienda",function(req,res){
+    res.render("tienda",{nombre: req.session.usuario})
+})
+
 app.get("/tienda/cerrarsesion",function(req,res){
     delete req.session.usuario;
     res.sendFile("login.html",{root: import.meta.dirname})
