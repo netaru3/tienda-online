@@ -1,251 +1,541 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
+    <title>Editar Producto - Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A0E27;
+            --primary-light: #1A1F3A;
+            --accent: #00D9FF;
+            --accent-secondary: #8A2BE2;
+            --text: #E8E8E8;
+            --text-dim: #A0A0A0;
+            --bg: #050816;
+            --card-bg: #0F1428;
+            --border: rgba(0, 217, 255, 0.2);
+            --danger: #FF4444;
+        }
 
-<body>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <div id="contenedor"></div>
-    <button onclick="borrarproducto()"> eliminar producto</button>
-<input type="text" name="editarimagen" id="editarnombre" placeholder="editar nombre">
-<button onclick="enviar()" id="">enviar</button>
-<br>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+        }
 
-<form action="/editarimagen" method="post" enctype="multipart/form-data">
-    <input type="file" name="editarimagen" id="editarimagen">
-     <input type="hidden" name="nombre" value="<%= nombre %>">
-    <input type="submit">
-</form>
-<input type="text" id="editardescripcion" placeholder="ingrese la nueva descripcion">
-<button onclick="enviardescripcion()">enviar</button>
-<input type="text" id="editarprecio" placeholder="ingrese el nuevo precio">
-<button onclick="enviarprecio()">enviar</button>
-<input type="text" id="editarstock" placeholder="ingrese el nuevo stock">
-<button onclick="stock()">enviar</button>
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 217, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(138, 43, 226, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
 
-<div id="comentarios"></div>
-<script src="/socket.io/socket.io.js"></script>
-    <script type="module">
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
 
-      //-----declaraciones-----------------------
-      let respuestas=[]
-      let productos=await fetch("/verproductos").then(function(res){return res.json()})
-      let id= "<%= id %>"
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.2rem;
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
 
-      //------------websocket--------------------
-      let socket= io()
-    socket.on("respuestas",function(respuestasdata){
-     respuestas=respuestasdata;
-     console.log(respuestas)
-        })
- socket.on("comentarios", async function(comentarios){ 
-  console.log(comentarios)
-  let idinterval=  setInterval(() => {
-      if(respuestas.length!==0){ mostrarcomentarios(comentarios); clearInterval(idinterval)}
-    }, 5);
-          
-   
-    
+        .back-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--accent);
+            transform: translateX(-4px);
+        }
 
-        })
-        
+        .page-header {
+            margin-bottom: 2rem;
+        }
 
-       
-      //----------------comentarios------------------
+        .page-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
 
-    window.enviarrespuesta= async function enviarrespuesta(usuario,comentario,numrespuesta){
-     let respuestas= await fetch("/respuesta",{method:"POST",
-      headers:{ "Content-Type":"application/json"},
-      body: JSON.stringify({ usuario: usuario,
-      comentario: comentario,
-      producto:"<%= nombre %>",
-      producto_id: id,
-      respuesta: document.getElementById(`respuesta${numrespuesta}`).value
-      })
-     })
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
 
-     
-      }
-  
-              function mostrarcomentarios(comentarios){
-               let i=0
-             const comentariodiv = document.getElementById("comentarios")
-             comentariodiv.innerHTML=""
-            for(let comentario of comentarios){
-               let comentusuario= document.createElement("p")
-               let coment= document.createElement("p")
+        .product-preview {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: sticky;
+            top: 2rem;
+        }
 
-               comentusuario.textContent= comentario.usuario;
-               coment.textContent=comentario.comentario
-               document.createElement("br")
-                
-              if(comentario.producto_id=="<%= id %>"){ comentariodiv.innerHTML +=`<p>${comentusuario.textContent} dice:</p>
-              <p>${coment.textContent}</p> <button onclick="window.location.href='/mensajeria/${comentusuario.textContent}'">contactar con el cliente</button>
-              <input type="text" id="respuesta${i}" placeholder="ingrese una respuesta">
-               <button onclick="enviarrespuesta('${comentusuario.textContent}','${coment.textContent}','${i}')">enviar</button>
-              <br> `}
+        .product-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
 
-              ++i
-              for(let respuesta of respuestas){
-                if(respuesta.comentario===coment.textContent && respuesta.usuario_al_que_se_responde===comentusuario.textContent && respuesta.producto_id=="<%= id %>"){
-                comentariodiv.innerHTML +=`
-              <p>respuesta:${respuesta.respuesta}, @${respuesta.usuario_al_que_se_responde}</p>
-              <br> `        
-                }}
+        .product-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .product-desc {
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .product-stock {
+            color: var(--text-dim);
+        }
+
+        .edit-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .edit-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        .form-input {
+            flex: 1;
+            padding: 0.9rem 1.2rem;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .btn {
+            padding: 0.9rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0099CC);
+            color: var(--primary);
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #CC0000);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 68, 68, 0.3);
+        }
+
+        .file-upload-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .file-label {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .comments-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .comment {
+            background: var(--primary);
+            padding: 1.2rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--accent);
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-text {
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .reply {
+            margin-top: 0.8rem;
+            padding-left: 1.5rem;
+            border-left: 2px solid var(--border);
+        }
+
+        @media (max-width: 968px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
             }
+
+            .product-preview {
+                position: relative;
+                top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/tienda/admin" class="back-btn">← Volver al panel</a>
+
+        <div class="page-header">
+            <h1 class="page-title">Editar Producto</h1>
+        </div>
+
+        <div class="admin-grid">
+            <!-- Product Preview -->
+            <div class="product-preview" id="contenedor"></div>
+
+            <!-- Edit Panel -->
+            <div class="edit-panel">
+                <!-- Edit Name -->
+                <div class="edit-section">
+                    <h3 class="section-title">📝 Nombre</h3>
+                    <div class="input-group">
+                        <input type="text" id="editarnombre" placeholder="Nuevo nombre" class="form-input">
+                        <button onclick="enviar()" class="btn btn-primary">Guardar</button>
+                    </div>
+                </div>
+
+                <!-- Edit Image -->
+                <div class="edit-section">
+                    <h3 class="section-title">📷 Imagen</h3>
+                    <form action="/editarimagen" method="post" enctype="multipart/form-data" class="file-upload-section">
+                        <input type="file" name="editarimagen" id="editarimagen" class="form-input">
+                        <input type="hidden" name="nombre" value="<%= nombre %>">
+                        <button type="submit" class="btn btn-primary">Actualizar Imagen</button>
+                    </form>
+                </div>
+
+                <!-- Edit Description -->
+                <div class="edit-section">
+                    <h3 class="section-title">📄 Descripción</h3>
+                    <div class="input-group">
+                        <input type="text" id="editardescripcion" placeholder="Nueva descripción" class="form-input">
+                        <button onclick="enviardescripcion()" class="btn btn-primary">Guardar</button>
+                    </div>
+                </div>
+
+                <!-- Edit Price -->
+                <div class="edit-section">
+                    <h3 class="section-title">💰 Precio</h3>
+                    <div class="input-group">
+                        <input type="text" id="editarprecio" placeholder="Nuevo precio" class="form-input">
+                        <button onclick="enviarprecio()" class="btn btn-primary">Guardar</button>
+                    </div>
+                </div>
+
+                <!-- Edit Stock -->
+                <div class="edit-section">
+                    <h3 class="section-title">📦 Stock</h3>
+                    <div class="input-group">
+                        <input type="text" id="editarstock" placeholder="Nuevo stock" class="form-input">
+                        <button onclick="stock()" class="btn btn-primary">Guardar</button>
+                    </div>
+                </div>
+
+                <!-- Delete Product -->
+                <div class="edit-section">
+                    <h3 class="section-title">🗑️ Eliminar Producto</h3>
+                    <button onclick="borrarproducto()" class="btn btn-danger">Eliminar Producto</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h2 class="section-title">💬 Comentarios de Clientes</h2>
+            <div id="comentarios"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module">
+        // ----- declaraciones -----------------------
+        let respuestas = [];
+        let productos = await fetch("/verproductos").then(res => res.json());
+        let id = "<%= id %>";
+
+        // ------------ websocket --------------------
+        let socket = io();
+        
+        socket.on("respuestas", function(respuestasdata) {
+            respuestas = respuestasdata;
+            console.log(respuestas);
+        });
+
+        socket.on("comentarios", async function(comentarios) {
+            console.log(comentarios);
+            let idinterval = setInterval(() => {
+                if (respuestas.length !== 0) {
+                    mostrarcomentarios(comentarios);
+                    clearInterval(idinterval);
+                }
+            }, 5);
+        });
+
+        // ---------------- comentarios ------------------
+        window.enviarrespuesta = async function enviarrespuesta(usuario, comentario, numrespuesta) {
+            let respuesta = await fetch("/respuesta", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    usuario: usuario,
+                    comentario: comentario,
+                    producto: "<%= nombre %>",
+                    producto_id: id,
+                    respuesta: document.getElementById(`respuesta${numrespuesta}`).value
+                })
+            });
+        }
+
+        function mostrarcomentarios(comentarios) {
+            let i = 0;
+            const comentariodiv = document.getElementById("comentarios");
+            comentariodiv.innerHTML = "";
             
+            for (let comentario of comentarios) {
+                if (comentario.producto_id == "<%= id %>") {
+                    comentariodiv.innerHTML += `
+                        <div class="comment">
+                            <div class="comment-author">${comentario.usuario} dice:</div>
+                            <div class="comment-text">${comentario.comentario}</div>
+                            <div class="comment-actions">
+                                <button onclick="window.location.href='/mensajeria/${comentario.usuario}'" class="btn btn-primary">
+                                    💬 Contactar
+                                </button>
+                                <input type="text" id="respuesta${i}" placeholder="Escribe una respuesta..." class="form-input">
+                                <button onclick="enviarrespuesta('${comentario.usuario}','${comentario.comentario}','${i}')" class="btn btn-primary">
+                                    Enviar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                i++;
+                
+                for (let respuesta of respuestas) {
+                    if (respuesta.comentario === comentario.comentario && 
+                        respuesta.usuario_al_que_se_responde === comentario.usuario && 
+                        respuesta.producto_id == "<%= id %>") {
+                        comentariodiv.innerHTML += `
+                            <div class="reply">
+                                <p style="color: var(--accent);">Respuesta: ${respuesta.respuesta}, @${respuesta.usuario_al_que_se_responde}</p>
+                            </div>
+                        `;
+                    }
+                }
+            }
         }
+
+        window.enviar = async function enviar() {
+            let url = await fetch("/editarnombre", {
+                method: "post",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    nombre: id,
+                    nombreeditado: document.getElementById("editarnombre").value
+                })
+            });
+            let data = await url.json();
+            window.location.href = `/producto/${data.nombreeditado}`;
+        }
+
+        window.enviardescripcion = async function enviardescripcion() {
+            let url = await fetch("/editardescripcion", {
+                method: "post",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    descripcion: document.getElementById("descripcion").textContent,
+                    descripcioneditada: document.getElementById("editardescripcion").value,
+                    nombre: id
+                })
+            });
+            let data = await url.json();
+            document.getElementById("descripcion").textContent = document.getElementById("editardescripcion").value;
+        }
+
+        window.enviarprecio = async function enviarprecio() {
+            let url = await fetch("/editarprecio", {
+                method: "post",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    precio: document.getElementById("precio").textContent,
+                    precioeditado: document.getElementById("editarprecio").value,
+                    nombre: id
+                })
+            });
+            let data = await url.json();
+            document.getElementById("precio").textContent = document.getElementById("editarprecio").value;
+        }
+
+        window.stock = async function stock() {
+            document.getElementById("stock").textContent = document.getElementById("editarstock").value;
+            await fetch("/editar-stock", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    producto: "<%= id %>",
+                    stock: document.getElementById("editarstock").value
+                })
+            });
+        }
+
+        function mostrarproductos(producto) {
+            let contenedor = document.getElementById("contenedor");
+            let nombre = producto.producto_nombre;
+            let precio = "precio: " + producto.producto_precio;
+            let descripcion = producto.producto_descripcion;
+            let stock = "stock: " + producto.producto_stock;
+
+            let imagenSrc = `/${producto.producto_imagen}`;
+            if (producto.producto_imagen[0]?.filename) {
+                imagenSrc = `/${producto.producto_imagen[0].filename}`;
+            }
+
+            contenedor.innerHTML = `
+                <img src="${imagenSrc}" class="product-image" id="imagen">
+                <h3 class="product-name" id="nombre">${nombre}</h3>
+                <p class="product-price" id="precio">${precio}</p>
+                <p class="product-desc" id="descripcion">${descripcion}</p>
+                <p class="product-stock" id="stock">${stock}</p>
+            `;
+        }
+
+        console.log(id);
+        console.log(productos);
         
-       
-       window.enviar= async function enviar(){
-           let url=  await fetch("/editarnombre",{method:"post",
-            headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({nombre: id,
-    nombreeditado:document.getElementById("editarnombre").value
-  })
-
- 
-        })
-         let data= await url.json()
-
-         window.location.href=`/producto/${data.nombreeditado}`
-
-   
-       }
-        
-  
-        window.enviarimagen=async function enviarimagen(){
-            let url=  await fetch("/editarnombre",{method:"post",
-            headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({nombre: id,
-    imageneditada:document.getElementById("editarimagen").file
-  })
-
- 
-        })
-         let data= await url.json()
-            let file=document.getElementById("editarimagen").files[0]
-            document.getElementById("imagen").src=URL.createObjectURL(file)
+        function mostrarproducto() {
+            for (let producto of productos) {
+                console.log(producto);
+                if (producto.producto_id == "<%= id %>") {
+                    console.log(producto);
+                    mostrarproductos(producto);
+                }
+            }
         }
 
-        window.enviardescripcion= async function enviardescripcion(){
-             let url=  await fetch("/editardescripcion",{method:"post",
-            headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({descripcion: document.getElementById("descripcion").textContent,
-    descripcioneditada:document.getElementById("editardescripcion").value,
-    nombre: id
-  })
+        mostrarproducto();
 
- 
-        })
-         let data= await url.json()
-
-   
-            document.getElementById("descripcion").textContent=document.getElementById("editardescripcion").value
+        window.borrarproducto = async function borrarproducto() {
+            if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+                await fetch("/borrarproducto", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        producto_id: "<%= id %>"
+                    })
+                });
+                window.location.href = "/tienda/admin";
+            }
         }
-        window.enviarprecio=async  function enviarprecio(){
-                let url=  await fetch("/editarprecio",{method:"post",
-            headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({precio: document.getElementById("precio").textContent,
-    precioeditado:document.getElementById("editarprecio").value,
-    nombre: id
-  })
-
- 
-        })
-         let data= await url.json()
-
-   
-            document.getElementById("descripcion").textContent=document.getElementById("editardescripcion").value
-            document.getElementById("precio").textContent=document.getElementById("editarprecio").value
-        }
-  
-        window.stock= async function stock(){
-          document.getElementById("stock").textContent= document.getElementById("editarstock").value
-
-          await fetch("/editar-stock",{method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({producto:"<%= id %>",
-            stock: document.getElementById("editarstock").value
-            })
-          })
-        }
-
-
- function mostrarproductos(producto){
-      let contenedor= document.getElementById("contenedor")
-        let nombre= document.createElement("h3")
-        nombre.textContent=producto.producto_nombre;
-        nombre.id="nombre"
-
-        let precio= document.createElement("h4")
-        precio.textContent="precio: "+producto.producto_precio
-        precio.id="precio";
-
-        let descripcion=document.createElement("p")
-        descripcion.textContent=producto.producto_descripcion
-        descripcion.id="descripcion"
-
-        let stock= document.createElement("h4")
-        stock.id="stock"
-        stock.textContent="stock: "+producto.producto_stock
-        if(producto.producto_imagen[0].filename){ contenedor.appendChild(nombre)
-    for(let imagen1 of producto.producto_imagen){
-        let imagen= document.createElement("img")
-   imagen.src=`/${imagen1.filename}`
-    
-   contenedor.appendChild(imagen)
-   contenedor.appendChild(precio)
-   contenedor.appendChild(descripcion)
-   contenedor.appendChild(stock)
-    } return
- }
-
-   let imagen= document.createElement("img")
-   imagen.id="imagen"
-   imagen.src=`/${producto.producto_imagen}`
-   imagen.width=500
-   console.log(imagen.src)
- 
-   
-   contenedor.appendChild(nombre)
-   contenedor.appendChild(imagen)
-   contenedor.appendChild(precio)
-  contenedor.appendChild(stock)
-   contenedor.appendChild(descripcion)
-
-
-}
-
-console.log(id)
-console.log(productos)
-function mostrarproducto(){for(let producto of productos){console.log(producto); if(producto.producto_id=="<%= id %>"){console.log(producto);
-     mostrarproductos(producto)}}}
-
-
-     mostrarproducto()
-
-    window.borrarproducto=async function borrarproducto(){
-      await fetch("/borrarproducto",{method:"POST",
-         headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    producto_id:"<%= id %>"
-  })})
-      window.location.href="/tienda/admin"
-    }
     </script>
 </body>
 </html>
