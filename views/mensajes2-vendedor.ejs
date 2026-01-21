@@ -1,118 +1,425 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Chat con Cliente</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        .derecha{
-            text-align: right;
+        :root {
+            --primary: #0A0E27;
+            --primary-light: #1A1F3A;
+            --accent: #00D9FF;
+            --accent-secondary: #8A2BE2;
+            --text: #E8E8E8;
+            --text-dim: #A0A0A0;
+            --bg: #050816;
+            --card-bg: #0F1428;
+            --border: rgba(0, 217, 255, 0.2);
+            --message-sent: linear-gradient(135deg, #00D9FF, #0099CC);
+            --message-received: #1A1F3A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .chat-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--accent);
+        }
+
+        .chat-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .chat-status {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00FF88;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Messages container */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(0, 217, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(138, 43, 226, 0.05) 0%, transparent 50%);
+            min-height: 0;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: var(--primary);
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        /* Messages */
+        .message-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-group.sent {
+            align-items: flex-end;
+        }
+
+        .message-group.received {
+            align-items: flex-start;
+        }
+
+        .message-author {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.3rem;
+            padding: 0 0.8rem;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 1rem 1.2rem;
+            border-radius: 16px;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message-group.sent .message-bubble {
+            background: var(--message-sent);
+            color: var(--primary);
+            border-bottom-right-radius: 4px;
+            font-weight: 500;
+        }
+
+        .message-group.received .message-bubble {
+            background: var(--message-received);
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        /* Input area */
+        .input-area {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+
+        .message-input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .send-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--accent), #0099CC);
+            color: var(--primary);
+            border: none;
+            border-radius: 24px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.2);
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Empty state */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 1rem;
+            }
+
+            .chat-title {
+                font-size: 1.2rem;
+            }
+
+            .messages-container {
+                padding: 1rem;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            .input-area {
+                padding: 1rem;
+            }
+
+            .send-btn {
+                padding: 1rem 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="chat-header">
+        <a href="/tienda/admin" class="back-btn">←</a>
+        <h1 class="chat-title">Chat con <%= usuario %></h1>
+        <div class="chat-status">
+            <span class="status-dot"></span>
+            En línea
+        </div>
+    </div>
     
-    <h1>mensajes:</h1>
-    <div id="chats"></div>
-    <div id="mensajes"></div>
-    <div id="enviar"></div>
-    <input type="text" id="mensaje" placeholder="enviar mensaje">
-    <button onclick="enviarmensaje('<%= usuario %>')">enviar</button>
-   
-    </button>
+    <div class="messages-container" id="mensajes">
+        <div class="empty-state">Esperando mensajes...</div>
+    </div>
+    
+    <div class="input-area">
+        <input type="text" id="mensaje" placeholder="Escribe un mensaje..." class="message-input" onkeypress="if(event.key === 'Enter') enviarmensaje('<%= usuario %>')">
+        <button onclick="enviarmensaje('<%= usuario %>')" class="send-btn">Enviar</button>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
-
-    
-    
     <script type="module">
-    //--------------declaraciones-------------------
-    let enviardiv= document.getElementById("enviar")
-     let div=document.getElementById("mensajes")
+        //--------------declaraciones-------------------
+        let enviardiv = document.getElementById("enviar");
+        let div = document.getElementById("mensajes");
+        let socket = io();
+        let mensajesuwu = [];
+        let i = 0;
+        let a = 0;
+        let usuario = "<%= usuario %>";
 
-        let socket= io()
-         let mensajesuwu=[]
-          let i=0; let a=0
+        //------------ declaración de funciones---------------
+        function mostrarmensajes(mensajes, usuario) {
+            const messageInput = document.getElementById("mensaje");
+            if (messageInput) {
+                messageInput.value = "";
+            }
+            
+            // Single message - sent by vendor
+            if (mensajes.length === 1 && mensajes[0].vendedor && mensajes[0].usuario_respuesta === usuario) {
+                div.innerHTML += `
+                    <div class="message-group sent">
+                        <div class="message-bubble">${mensajes[0].mensaje}</div>
+                    </div>
+                `;
+                div.scrollTop = div.scrollHeight;
+                return;
+            }
 
-        
+            // Single message - received from client
+            if (mensajes.length === 1 && mensajes[0].vendedor === false && mensajes[0].usuario === usuario) {
+                div.innerHTML += `
+                    <div class="message-group received">
+                        <div class="message-bubble">${mensajes[0].mensaje}</div>
+                    </div>
+                `;
+                div.scrollTop = div.scrollHeight;
+                return;
+            }
 
- //------------ declaración de funciones---------------
- function mostrarmensajes(mensajes,usuario){
-    document.getElementById("mensaje").value=""
-   
-     if(mensajes.length===1 && mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario){div.innerHTML+=` <br>
-      <p class="derecha">${mensajes[0].mensaje}</p> <br>  `
-      return}
+            // Multiple messages
+            if (mensajes.length > 1) {
+                div.innerHTML = "";
+                let lastType = null;
 
-       if(mensajes.length===1 && mensajes[0].vendedor===false && mensajes[0].usuario===usuario){div.innerHTML+=` <br>
-      <p>${mensajes[0].mensaje}</p> <br>  `
-      return}
+                for (let mensaje of mensajes) {
+                    // Client messages
+                    if (mensaje.vendedor === false && mensaje.usuario === usuario) {
+                        if (lastType !== 'received' || i === 0) {
+                            div.innerHTML += `
+                                <div class="message-group received">
+                                    <div class="message-author">${mensaje.usuario}</div>
+                                    <div class="message-bubble">${mensaje.mensaje}</div>
+                                </div>
+                            `;
+                            lastType = 'received';
+                            i = 1;
+                            a = 0;
+                        } else {
+                            div.innerHTML += `
+                                <div class="message-group received">
+                                    <div class="message-bubble">${mensaje.mensaje}</div>
+                                </div>
+                            `;
+                        }
+                    } 
+                    // Vendor messages
+                    else if (mensaje.vendedor && mensaje.usuario_respuesta === usuario) {
+                        if (lastType !== 'sent' || a === 0) {
+                            div.innerHTML += `
+                                <div class="message-group sent">
+                                    <div class="message-author">Vendedor</div>
+                                    <div class="message-bubble">${mensaje.mensaje}</div>
+                                </div>
+                            `;
+                            lastType = 'sent';
+                            a = 1;
+                            i = 0;
+                        } else {
+                            div.innerHTML += `
+                                <div class="message-group sent">
+                                    <div class="message-bubble">${mensaje.mensaje}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            }
+            
+            // Scroll to bottom
+            setTimeout(() => {
+                div.scrollTop = div.scrollHeight;
+            }, 50);
+        }
 
-    if(mensajes.length>1){div.innerHTML="";
-  
-    for(let mensaje of mensajes)
-     {
-      
-        if(mensaje.vendedor===false && i===0 && mensaje.usuario===usuario){++i, a=0;div.innerHTML+=`<p>${mensaje.usuario}:</p> <br>
-      <p>${mensaje.mensaje}</p> <br>  `}
+        window.enviarmensaje = async function enviarmensaje(usuario) {
+            console.log("se ejecutó la función del onclick");
+            const messageInput = document.getElementById("mensaje");
+            const mensaje = messageInput.value.trim();
+            
+            if (!mensaje) return;
+            
+            await fetch("/mensajes", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    usuario: "vendedor",
+                    mensaje: mensaje,
+                    vendedor: true,
+                    usuario_respuesta: usuario
+                })
+            });
+            
+            console.log("se envió el mensaje");
+            messageInput.value = "";
+        }
 
-      else if(mensaje.vendedor===false && i!==0 && mensaje.usuario===usuario){div.innerHTML+=` <br>
-      <p>${mensaje.mensaje}</p> <br>  `}
-
-    else if(mensaje.vendedor && a===0 && mensaje.usuario_respuesta===usuario){ i=0; ++a
-        div.innerHTML+=`<p class="derecha">vendedor:</p> <br>
-      <p class="derecha">${mensaje.mensaje}</p> <br>  `
-    }
- else if(mensaje.vendedor && a!==0 && mensaje.usuario_respuesta===usuario){ i=0;   
-        div.innerHTML+=` <br>
-      <p class="derecha">${mensaje.mensaje}</p> <br>  `
-    }}}
-    
-    else
-     {
-      if(mensajes.vendedor===false){++i, a=0;div.innerHTML+=`<p>${mensajes.usuario}:</p> <br>
-      <p>${mensajes.mensaje}</p> <br>  `}
-      
-      else if(mensajes.vendedor===false && i!==0){div.innerHTML+=` <br>
-      <p>${mensajes.mensaje}</p> <br>  `}
-    else if(mensajes.vendedor){ i=0
-        div.innerHTML+=`<p class="derecha">vendedor:</p> <br>
-      <p class="derecha">${mensajes.mensaje}</p> <br>  `
-    }
- else if(mensajes.vendedor){ i=0; ++a
-        div.innerHTML+=` <br>
-      <p class="derecha">${mensajes.mensaje}</p> <br>  `
-    }}
-    
- }
-
- window.enviarmensaje= async function enviarmensaje(usuario){ console.log("se ejecutó la función del onclick")
- await fetch("/mensajes",{method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({usuario:"vendedor",
-        mensaje: document.getElementById("mensaje").value,
-        vendedor: true,
-        usuario_respuesta: usuario//usuario al que el vendedor responde
-    })
- })
- console.log("se envió el mensaje")
- }
-
- //------------código----------------
-
- let usuario= "<%= usuario %>"
- console.log(usuario)
- 
-
+        //------------código----------------
+        console.log("Usuario:", usuario);
 
         //------------websocket--------------------
-
-     socket.on("mensajes",function(mensajes){mensajesuwu=mensajes;
-
-           mostrarmensajes(mensajesuwu,usuario)
-            })
-    
-
-
+        socket.on("mensajes", function(mensajes) {
+            mensajesuwu = mensajes;
+            mostrarmensajes(mensajesuwu, usuario);
+        });
     </script>
 </body>
 </html>
