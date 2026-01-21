@@ -62,13 +62,15 @@
         header {
             position: relative;
             z-index: 10;
-            padding: 2rem 5%;
+            padding: 1.5rem 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(10px);
             background: rgba(10, 14, 39, 0.8);
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .logo {
@@ -83,22 +85,24 @@
 
         .header-actions {
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         /* Buttons */
         .btn {
-            padding: 0.7rem 1.5rem;
+            padding: 0.7rem 1.2rem;
             border: none;
             border-radius: 8px;
             font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            white-space: nowrap;
         }
 
         .btn-primary {
@@ -142,13 +146,13 @@
         .welcome-section {
             position: relative;
             z-index: 5;
-            padding: 4rem 5%;
+            padding: 3rem 5%;
             text-align: center;
         }
 
         .welcome-title {
             font-family: 'Sora', sans-serif;
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
             background: linear-gradient(135deg, var(--text), var(--accent));
@@ -158,7 +162,7 @@
         }
 
         .welcome-subtitle {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--text-dim);
             margin-bottom: 2rem;
             animation: fadeInUp 0.8s ease 0.2s backwards;
@@ -178,22 +182,66 @@
         /* Notifications panel */
         .notifications-panel {
             position: fixed;
-            top: 100px;
-            right: -400px;
-            width: 350px;
-            max-height: 500px;
+            top: 80px;
+            right: -100%;
+            width: 90%;
+            max-width: 350px;
+            max-height: 70vh;
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1.5rem;
-            z-index: 100;
+            z-index: 1000;
             transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             overflow-y: auto;
             box-shadow: -5px 5px 30px rgba(0, 0, 0, 0.5);
         }
 
         .notifications-panel.active {
-            right: 20px;
+            right: 5%;
+        }
+
+        .notifications-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notifications-panel::-webkit-scrollbar-track {
+            background: var(--primary);
+        }
+
+        .notifications-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .notification-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .close-notif {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.2rem 0.5rem;
+            line-height: 1;
+        }
+
+        .close-notif:hover {
+            color: var(--accent);
         }
 
         .notification-item {
@@ -216,6 +264,23 @@
             }
         }
 
+        /* Overlay for mobile */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            display: none;
+            backdrop-filter: blur(4px);
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
         /* Products grid */
         .products-container {
             position: relative;
@@ -227,8 +292,8 @@
 
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
             animation: fadeIn 0.6s ease;
         }
 
@@ -283,7 +348,7 @@
 
         .product-image-container {
             width: 100%;
-            height: 250px;
+            height: 220px;
             overflow: hidden;
             position: relative;
             background: var(--primary);
@@ -306,7 +371,7 @@
 
         .product-name {
             font-family: 'Sora', sans-serif;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 0.8rem;
             color: var(--text);
@@ -321,7 +386,7 @@
 
         .product-description {
             color: var(--text-dim);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             line-height: 1.6;
             margin-bottom: 1rem;
             display: -webkit-box;
@@ -332,7 +397,7 @@
 
         .product-price {
             font-family: 'Sora', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: var(--accent);
             margin-bottom: 0.5rem;
@@ -340,26 +405,76 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                gap: 1rem;
+            .logo {
+                font-size: 1.5rem;
             }
 
             .welcome-title {
-                font-size: 2rem;
+                font-size: 1.8rem;
+            }
+
+            .welcome-subtitle {
+                font-size: 1rem;
+            }
+
+            .welcome-section {
+                padding: 2rem 5%;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+
+            .product-image-container {
+                height: 200px;
+            }
+
+            .notifications-panel {
+                top: 70px;
+                width: 85%;
+                max-height: 60vh;
+            }
+
+            .notifications-panel.active {
+                right: 7.5%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 1rem 4%;
             }
 
             .products-grid {
                 grid-template-columns: 1fr;
             }
 
+            .product-image-container {
+                height: 250px;
+            }
+
+            .btn-icon span {
+                display: none;
+            }
+
             .notifications-panel {
                 width: 90%;
-                right: -100%;
+                border-radius: 12px 0 0 12px;
             }
 
             .notifications-panel.active {
-                right: 5%;
+                right: 0;
             }
         }
 
@@ -370,11 +485,13 @@
     </style>
 </head>
 <body>
+    <div class="overlay" id="overlay" onclick="cerrarNotificaciones()"></div>
+
     <header>
         <div class="logo">MARKETPLACE</div>
         <div class="header-actions">
             <button onclick="notificaciones()" class="btn btn-icon" id="notif-btn">
-                🔔 Notificaciones
+                🔔 <span>Notificaciones</span>
             </button>
             <button onclick="window.location.href='/mensajeria/<%= nombre %>'" class="btn btn-secondary">
                 💬 Mensajes
@@ -391,7 +508,13 @@
         </div>
     </header>
 
-    <div class="notifications-panel" id="notificaciones"></div>
+    <div class="notifications-panel" id="notificaciones">
+        <div class="notification-header">
+            <h3 class="notification-title">Notificaciones</h3>
+            <button class="close-notif" onclick="cerrarNotificaciones()">×</button>
+        </div>
+        <div id="notif-content"></div>
+    </div>
 
     <section class="welcome-section">
         <h1 class="welcome-title" id="bienvenida">Bienvenido</h1>
@@ -416,15 +539,16 @@
 
         // -------------- declaración de funciones -------------------
         window.notificaciones = function notificaciones() {
-            const div = document.getElementById("notificaciones");
-            const panel = div;
+            const div = document.getElementById("notif-content");
+            const panel = document.getElementById("notificaciones");
+            const overlay = document.getElementById("overlay");
             
             if (a === 0) {
                 div.innerHTML = "";
                 const userNotifications = notificaciones1.filter(n => n.usuario === nombre);
                 
                 if (userNotifications.length === 0) {
-                    div.innerHTML = '<p style="color: var(--text-dim);">No tienes notificaciones</p>';
+                    div.innerHTML = '<p style="color: var(--text-dim); text-align: center;">No tienes notificaciones</p>';
                 } else {
                     userNotifications.forEach(notificacion => {
                         div.innerHTML += `
@@ -435,11 +559,19 @@
                     });
                 }
                 panel.classList.add('active');
+                overlay.classList.add('active');
                 a = 1;
             } else {
-                panel.classList.remove('active');
-                a = 0;
+                cerrarNotificaciones();
             }
+        }
+
+        window.cerrarNotificaciones = function cerrarNotificaciones() {
+            const panel = document.getElementById("notificaciones");
+            const overlay = document.getElementById("overlay");
+            panel.classList.remove('active');
+            overlay.classList.remove('active');
+            a = 0;
         }
 
         window.redireccionarregistro = function redireccionarregistro() {
@@ -511,16 +643,6 @@
             mostrarproductos(i);
             i++;
         }
-
-        // Close notifications when clicking outside
-        document.addEventListener('click', function(e) {
-            const panel = document.getElementById('notificaciones');
-            const btn = document.getElementById('notif-btn');
-            if (!panel.contains(e.target) && !btn.contains(e.target) && panel.classList.contains('active')) {
-                panel.classList.remove('active');
-                a = 0;
-            }
-        });
     </script>
 </body>
 </html>
