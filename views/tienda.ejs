@@ -1,166 +1,526 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tienda</title>
-     <style>
-        .derecha{
-            text-align: right;
+    <title>Tienda - Marketplace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A0E27;
+            --primary-light: #1A1F3A;
+            --accent: #00D9FF;
+            --accent-glow: rgba(0, 217, 255, 0.3);
+            --text: #E8E8E8;
+            --text-dim: #A0A0A0;
+            --bg: #050816;
+            --card-bg: #0F1428;
+            --border: rgba(0, 217, 255, 0.2);
+            --shadow: rgba(0, 217, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
+            animation: drift 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(5%, -5%) rotate(5deg); }
+            66% { transform: translate(-5%, 5%) rotate(-5deg); }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 2rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            background: rgba(10, 14, 39, 0.8);
+        }
+
+        .logo {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #8A2BE2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0099CC);
+            color: var(--primary);
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-light);
+            border-color: var(--accent);
+        }
+
+        .btn-icon {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-icon:hover {
+            background: var(--card-bg);
+            border-color: var(--accent);
+        }
+
+        /* Welcome section */
+        .welcome-section {
+            position: relative;
+            z-index: 5;
+            padding: 4rem 5%;
+            text-align: center;
+        }
+
+        .welcome-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--text), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease 0.2s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Notifications panel */
+        .notifications-panel {
+            position: fixed;
+            top: 100px;
+            right: -400px;
+            width: 350px;
+            max-height: 500px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            z-index: 100;
+            transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            overflow-y: auto;
+            box-shadow: -5px 5px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .notifications-panel.active {
+            right: 20px;
+        }
+
+        .notification-item {
+            background: var(--primary-light);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+            border-left: 3px solid var(--accent);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Products grid */
+        .products-container {
+            position: relative;
+            z-index: 5;
+            padding: 2rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Product card */
+        .product-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            animation: cardAppear 0.6s ease backwards;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), #8A2BE2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .product-card:hover::before {
+            opacity: 1;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .product-image-container {
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
+            position: relative;
+            background: var(--primary);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .product-card:hover .product-image {
+            transform: scale(1.1);
+        }
+
+        .product-body {
+            padding: 1.5rem;
+        }
+
+        .product-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            color: var(--text);
+            text-decoration: none;
+            display: block;
+            transition: color 0.3s ease;
+        }
+
+        .product-name:hover {
+            color: var(--accent);
+        }
+
+        .product-description {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .product-price {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .welcome-title {
+                font-size: 2rem;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .notifications-panel {
+                width: 90%;
+                right: -100%;
+            }
+
+            .notifications-panel.active {
+                right: 5%;
+            }
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    
-    <h1 id="bienvenida">bienvenido </h1> 
-    <button onclick="redireccionarlogin()" id="login">iniciar sesion</button>
-    <button onclick="redireccionarregistro()" id="registro">registrarse</button>
-    <button onclick="notificaciones()" class="derecha">notificaciones</button>
-    <button onclick="window.location.href=`/mensajeria/<%= nombre %>`">mensajes</button>
-    <div id="notificaciones"></div>
-     <button onclick="cerrarsesion()" id="sesion">cerrar sesión</button>
-    <h2>Mira todo los productos que tenemos!</h2>
-
-    <div id="contenedor">
-
-    </div>
-    
-
-   
-</body>
-<script type="module">
-    //----------declaración de variables------------
-    let i=0
-    let a=0
-    let nombre= "<%= nombre %>"
-
-     let notificaciones1= await fetch("/notificaciones-comprador").then(function(res){return res}).then(function(res){
-        return res.json()
-
-       
-    })
-    let productos=await fetch("/verproductos").then(function(res){return res.json()})
-
-
-    //--------------declaración de funciones-------------------
-     window.notificaciones= function notificaciones(){ let div= document.getElementById("notificaciones"); div.innerHTML=""
-        if(a===0){
-        for(let notificacion of notificaciones1){ if(notificacion.usuario===nombre){
-            div.innerHTML+=`<p class="derecha">notificacion: ${notificacion.notificacion}</p> <br>`; ++a}
-            }
-    return}
-       if(a!==0){div.innerHTML="", a=0}
-    }
-
-    window.redireccionarregistro= function redireccionarregistro(){
-        window.location.href="/"
-    }
-      window.redireccionarlogin= function redireccionarlogin(){
-        window.location.href="/data"
-    }
-    
-
-    
-  window.cerrarsesion= async function cerrarsesion(){
-       await fetch(`/tienda/cerrarsesion`)
-       window.location.href="/data"
-    }
-   
-
-    
-
-    console.log(productos)
-    function mostrarproductos(i){ if(productos[i].null===false){
-        let nombre= document.createElement("h3")
-        nombre.textContent=productos[i].producto_nombre;
-
-        let precio= document.createElement("h4")
-        precio.textContent="precio: "+productos[i].producto_precio
-
-        let descripcion=document.createElement("p")
-        descripcion.textContent=productos[i].producto_descripcion
-
-   let imagen= document.createElement("img")
-   imagen.src=`/${productos[i].producto_imagen}`
-   imagen.width=500
-   console.log(imagen.src)
- 
-   let contenedor= document.getElementById("contenedor")
-    if(productos[i].producto_imagen[0].filename){
-     contenedor.innerHTML +=`
-    <div class="card-header">
-        <div class="card-name">
-            <a href="/producto/${nombre.textContent}/${i+1}">${nombre.textContent}</a>
+    <header>
+        <div class="logo">MARKETPLACE</div>
+        <div class="header-actions">
+            <button onclick="notificaciones()" class="btn btn-icon" id="notif-btn">
+                🔔 Notificaciones
+            </button>
+            <button onclick="window.location.href='/mensajeria/<%= nombre %>'" class="btn btn-secondary">
+                💬 Mensajes
+            </button>
+            <button onclick="redireccionarlogin()" class="btn btn-primary" id="login">
+                Iniciar sesión
+            </button>
+            <button onclick="redireccionarregistro()" class="btn btn-primary" id="registro">
+                Registrarse
+            </button>
+            <button onclick="cerrarsesion()" class="btn btn-secondary" id="sesion">
+                Cerrar sesión
+            </button>
         </div>
+    </header>
+
+    <div class="notifications-panel" id="notificaciones"></div>
+
+    <section class="welcome-section">
+        <h1 class="welcome-title" id="bienvenida">Bienvenido</h1>
+        <p class="welcome-subtitle">Descubre los mejores productos seleccionados para ti</p>
+    </section>
+
+    <div class="products-container">
+        <div class="products-grid" id="contenedor"></div>
     </div>
 
-    <a href="/producto/${nombre.textContent}/${i+1}">
-        <div class="card-image-container">
-            <img src="/${productos[i].producto_imagen[0].filename}" alt="${nombre.textContent}" width="500" class="card-image">
-        </div>
-    </a>
+    <script type="module">
+        // ---------- declaración de variables ------------
+        let i = 0;
+        let a = 0;
+        let nombre = "<%= nombre %>";
 
-    <div class="card-body">
-        <div class="card-description">
-            ${descripcion.textContent}
-        </div>
+        let notificaciones1 = await fetch("/notificaciones-comprador")
+            .then(res => res.json());
         
-    </div>
-    <div class="card-header">
-        <div class="card-name">
-            <a href="/producto/${nombre.textContent}/${i+1}">${precio.textContent}</a>
-        </div>
-    </div>
-    <br>
-`
-    return
-   }
-   contenedor.innerHTML +=`
-    <div class="card-header">
-        <div class="card-name">
-            <a href="/producto/${nombre.textContent}/${i+1}">${nombre.textContent}</a>
-        </div>
-    </div>
+        let productos = await fetch("/verproductos")
+            .then(res => res.json());
 
-    <a href="/producto/${nombre.textContent}/${i+1}">
-        <div class="card-image-container">
-            <img src="${imagen.src}" alt="${nombre.textContent}" width="500" class="card-image">
-        </div>
-    </a>
-    
-     <div class="card-header">
-        <div class="card-name">
-            <a href="/producto/${nombre.textContent}/${i+1}">${precio.textContent}</a>
-        </div>
-    </div>
+        // -------------- declaración de funciones -------------------
+        window.notificaciones = function notificaciones() {
+            const div = document.getElementById("notificaciones");
+            const panel = div;
+            
+            if (a === 0) {
+                div.innerHTML = "";
+                const userNotifications = notificaciones1.filter(n => n.usuario === nombre);
+                
+                if (userNotifications.length === 0) {
+                    div.innerHTML = '<p style="color: var(--text-dim);">No tienes notificaciones</p>';
+                } else {
+                    userNotifications.forEach(notificacion => {
+                        div.innerHTML += `
+                            <div class="notification-item">
+                                <p>${notificacion.notificacion}</p>
+                            </div>
+                        `;
+                    });
+                }
+                panel.classList.add('active');
+                a = 1;
+            } else {
+                panel.classList.remove('active');
+                a = 0;
+            }
+        }
 
-    <div class="card-body">
-        <div class="card-description">
-            ${descripcion.textContent}
-        </div>
-    </div>
-    <p hidden id="id">${i+1}</p>
-`}
+        window.redireccionarregistro = function redireccionarregistro() {
+            window.location.href = "/";
+        }
 
+        window.redireccionarlogin = function redireccionarlogin() {
+            window.location.href = "/data";
+        }
 
+        window.cerrarsesion = async function cerrarsesion() {
+            await fetch(`/tienda/cerrarsesion`);
+            window.location.href = "/data";
+        }
 
-}
+        function mostrarproductos(i) {
+            if (productos[i].null === false) {
+                const nombre = productos[i].producto_nombre;
+                const precio = productos[i].producto_precio;
+                const descripcion = productos[i].producto_descripcion;
+                const contenedor = document.getElementById("contenedor");
+                
+                let imagenSrc = `/${productos[i].producto_imagen}`;
+                if (productos[i].producto_imagen[0]?.filename) {
+                    imagenSrc = `/${productos[i].producto_imagen[0].filename}`;
+                }
 
+                const card = `
+                    <div class="product-card" style="animation-delay: ${i * 0.05}s">
+                        <a href="/producto/${nombre}/${i + 1}">
+                            <div class="product-image-container">
+                                <img src="${imagenSrc}" alt="${nombre}" class="product-image">
+                            </div>
+                        </a>
+                        <div class="product-body">
+                            <a href="/producto/${nombre}/${i + 1}" class="product-name">
+                                ${nombre}
+                            </a>
+                            <div class="product-description">
+                                ${descripcion}
+                            </div>
+                            <div class="product-price">${precio}</div>
+                        </div>
+                        <p class="hidden" id="id">${i + 1}</p>
+                    </div>
+                `;
+                
+                contenedor.innerHTML += card;
+            }
+        }
 
-        //------------codigo-----------------
-         
+        // ------------ codigo -----------------
+        if (nombre === "undefined") {
+            nombre = "visitante";
+        }
+        
+        if (nombre === "visitante") {
+            document.getElementById("sesion").remove();
+        }
+        
+        document.getElementById("bienvenida").textContent += " " + nombre;
 
-        if(nombre==="undefined"){nombre="visitante"}
-if(nombre==="visitante"){document.getElementById("sesion").remove()}
-    document.getElementById("bienvenida").textContent+=" "+nombre
+        if (nombre !== "visitante") {
+            document.getElementById("login").remove();
+            document.getElementById("registro").remove();
+        }
 
-    if(nombre!=="visitante"){document.getElementById("login").remove();
-        document.getElementById("registro").remove()
-    }
+        while (i < productos.length) {
+            mostrarproductos(i);
+            i++;
+        }
 
-while(i<productos.length){mostrarproductos(i);++i}
-
-
-
-</script>
+        // Close notifications when clicking outside
+        document.addEventListener('click', function(e) {
+            const panel = document.getElementById('notificaciones');
+            const btn = document.getElementById('notif-btn');
+            if (!panel.contains(e.target) && !btn.contains(e.target) && panel.classList.contains('active')) {
+                panel.classList.remove('active');
+                a = 0;
+            }
+        });
+    </script>
+</body>
 </html>
