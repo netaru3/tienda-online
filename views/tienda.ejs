@@ -8,6 +8,39 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        .product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    background: var(--primary-light);
+}
+
+/* Asegurar que las imágenes se carguen correctamente */
+.product-image-container {
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Loading placeholder */
+.product-image-container::before {
+    content: '📦';
+    position: absolute;
+    font-size: 3rem;
+    opacity: 0.3;
+    z-index: 0;
+}
+
+.product-image {
+    position: relative;
+    z-index: 1;
+}
         :root {
             --primary: #0A0E27;
             --primary-light: #1A1F3A;
