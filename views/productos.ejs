@@ -1,57 +1,381 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>productos</title>
+    <title>Publicar Producto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A0E27;
+            --primary-light: #1A1F3A;
+            --accent: #00D9FF;
+            --accent-secondary: #8A2BE2;
+            --text: #E8E8E8;
+            --text-dim: #A0A0A0;
+            --bg: #050816;
+            --card-bg: #0F1428;
+            --border: rgba(0, 217, 255, 0.2);
+            --success: #00FF88;
+            --error: #FF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
+            animation: drift 25s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(3%, -3%) rotate(3deg); }
+            66% { transform: translate(-3%, 3%) rotate(-3deg); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-subtitle {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.5s ease backwards;
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.15s; }
+        .form-group:nth-child(3) { animation-delay: 0.2s; }
+        .form-group:nth-child(4) { animation-delay: 0.25s; }
+        .form-group:nth-child(5) { animation-delay: 0.3s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--text-dim);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--primary);
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-dim);
+        }
+
+        .file-input-label:hover {
+            border-color: var(--accent);
+            background: var(--primary-light);
+            color: var(--accent);
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-name {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+
+        .form-hint {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 217, 255, 0.05);
+            border-left: 3px solid var(--accent);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, var(--accent), #0099CC);
+            color: var(--primary);
+            border: none;
+            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.2);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+
+            .form-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <form action="/products" method="post" enctype="multipart/form-data" onsubmit="enviar(event)">
-        <input type="text" placeholder="Ingrese el nombre de su producto" name="nombre" id="nombre">
-         <input type="text" placeholder="Ingrese la descripción de su producto" name="descripcion">
-         <input type="file" name="imagen" multiple accept="image/*" id="imagenes">
-         <input type="text" placeholder="ingrese el precio en formato: $500" size="25" name="precio" id="precio">
-         <input type="number" placeholder="stock" name="stock" id="stock">
-         <button type="submit" > enviar</button>
-    </form> <br>
+    <div class="container">
+        <div class="form-header">
+            <h1 class="form-title">Publicar Producto</h1>
+            <p class="form-subtitle">Completa la información de tu producto</p>
+        </div>
 
+        <form action="/products" method="post" enctype="multipart/form-data" onsubmit="enviar(event)">
+            <div class="form-group">
+                <label class="form-label" for="nombre">Nombre del Producto</label>
+                <input type="text" class="form-input" placeholder="Ej: Laptop Gaming RGB" name="nombre" id="nombre">
+            </div>
 
-    <p>el precio solo puede estar en pesos uruguayos($) o dólares(US$)</p>
+            <div class="form-group">
+                <label class="form-label" for="descripcion">Descripción</label>
+                <textarea class="form-textarea" placeholder="Describe las características de tu producto..." name="descripcion" id="descripcion"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="imagenes">Imágenes</label>
+                <div class="file-input-wrapper">
+                    <label for="imagenes" class="file-input-label">
+                        📷 Seleccionar imágenes
+                    </label>
+                    <input type="file" name="imagen" multiple accept="image/*" id="imagenes" class="file-input" onchange="mostrarNombresArchivos()">
+                </div>
+                <div id="file-names" class="file-name"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="precio">Precio</label>
+                <input type="text" class="form-input" placeholder="Ej: $500 o US$100" name="precio" id="precio">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="stock">Stock</label>
+                <input type="number" class="form-input" placeholder="Cantidad disponible" name="stock" id="stock">
+            </div>
+
+            <div class="form-hint">
+                💡 El precio solo puede estar en pesos uruguayos ($) o dólares (US$)
+            </div>
+
+            <button type="submit" class="btn-submit">Publicar Producto</button>
+        </form>
+    </div>
 
     <script>
-        window.enviar= function enviar(event){
-            let i=0
-            let precio= document.getElementById("precio").value.toLowerCase()
-            let nombre= document.getElementById("nombre").value
-            let stock= Number(document.getElementById("stock").value)
-            let imagen= document.getElementById("imagenes").value;
-
-            if(nombre===""){alert("ingrese un nombre"); event.preventDefault(); return}
-            if(Number.isNaN(precio)){alert("ingrese el stock correctamente"); event.preventDefault(); return}
-            if(imagen.length===0){alert("ingrese una imagen"), event.preventDefault(); return}
-            console.log(precio)
-            if(!/\d/.test(precio)){alert("ingrese un número"),event.preventDefault();return} 
-            if(!precio.startsWith("$") && !precio.startsWith("us$")){alert("la unidad va primero"), event.preventDefault(); return}
-           
-            if(precio===""){alert("inserte un precio"); event.preventDefault(); return}
-
-            if(document.getElementById("precio").value.includes(" ")){alert("no pueden haber espacios")
-                event.preventDefault(); return
+        function mostrarNombresArchivos() {
+            const input = document.getElementById('imagenes');
+            const fileNamesDiv = document.getElementById('file-names');
+            
+            if (input.files.length > 0) {
+                const names = Array.from(input.files).map(file => file.name).join(', ');
+                fileNamesDiv.textContent = `✓ ${input.files.length} archivo(s) seleccionado(s)`;
+            } else {
+                fileNamesDiv.textContent = '';
             }
-            if(Number(document.getElementById("precio").value.match(/^-?\d+$/))<0){ alert("debes poner un precio positivo")
-                event.preventDefault(); return
-            }
-            if(document.getElementById("precio").value.match(/[^\d]/g).toString().toLowerCase()!=="$" && document.getElementById("precio").value.match(/[^\d]/g).toString().toLowerCase()!=="u,s,$" || document.getElementById("precio").value.toString()===""){
-                alert("no puso bien la unidad"), event.preventDefault(); return
+        }
+
+        window.enviar = function enviar(event) {
+            let precio = document.getElementById("precio").value.toLowerCase();
+            let nombre = document.getElementById("nombre").value;
+            let stock = Number(document.getElementById("stock").value);
+            let imagen = document.getElementById("imagenes").value;
+
+            if (nombre === "") {
+                alert("Ingrese un nombre");
+                event.preventDefault();
+                return;
             }
             
+            if (isNaN(stock)) {
+                alert("Ingrese el stock correctamente");
+                event.preventDefault();
+                return;
+            }
             
-            if(!document.getElementById("precio").value.split("")[0].includes("$") && !precio.startsWith("us$")){
-                alert("ingrese una unidad"); event.preventDefault()
+            if (imagen.length === 0) {
+                alert("Ingrese una imagen");
+                event.preventDefault();
+                return;
+            }
+            
+            if (!/\d/.test(precio)) {
+                alert("Ingrese un número");
+                event.preventDefault();
+                return;
+            }
+            
+            if (!precio.startsWith("$") && !precio.startsWith("us$")) {
+                alert("La unidad va primero");
+                event.preventDefault();
+                return;
+            }
+            
+            if (precio === "") {
+                alert("Inserte un precio");
+                event.preventDefault();
+                return;
+            }
+
+            if (document.getElementById("precio").value.includes(" ")) {
+                alert("No pueden haber espacios");
+                event.preventDefault();
+                return;
+            }
+            
+            if (Number(document.getElementById("precio").value.match(/^-?\d+$/)) < 0) {
+                alert("Debes poner un precio positivo");
+                event.preventDefault();
+                return;
+            }
+            
+            if (document.getElementById("precio").value.match(/[^\d]/g).toString().toLowerCase() !== "$" && 
+                document.getElementById("precio").value.match(/[^\d]/g).toString().toLowerCase() !== "u,s,$" || 
+                document.getElementById("precio").value.toString() === "") {
+                alert("No puso bien la unidad");
+                event.preventDefault();
+                return;
+            }
+            
+            if (!document.getElementById("precio").value.split("")[0].includes("$") && !precio.startsWith("us$")) {
+                alert("Ingrese una unidad");
+                event.preventDefault();
             }
         }
     </script>
-
-
 </body>
 </html>
