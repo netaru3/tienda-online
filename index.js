@@ -62,8 +62,7 @@ app.use(session({
 
 //------------------------rutas estáticas---------------------------------
 app.get('/',function(req,res){ 
-    res.sendFile("registro1.html",{
-        root: import.meta.dirname
+    res.render("tienda",{ nombre: "visitante"
     })
 })
 
