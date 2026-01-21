@@ -587,41 +587,66 @@
             window.location.href = "/data";
         }
 
-        function mostrarproductos(i) {
-            if (productos[i].null === false) {
-                const nombre = productos[i].producto_nombre;
-                const precio = productos[i].producto_precio;
-                const descripcion = productos[i].producto_descripcion;
-                const contenedor = document.getElementById("contenedor");
-                
-                let imagenSrc = `/${productos[i].producto_imagen}`;
-                if (productos[i].producto_imagen[0]?.filename) {
+function mostrarproductos(i) {
+    if (productos[i].null === false) {
+        const nombre = productos[i].producto_nombre;
+        const precio = productos[i].producto_precio;
+        const descripcion = productos[i].producto_descripcion;
+        const contenedor = document.getElementById("contenedor");
+        
+        let imagenSrc = '';
+        
+        // Manejo más robusto de imágenes
+        if (productos[i].producto_imagen) {
+            if (Array.isArray(productos[i].producto_imagen) && productos[i].producto_imagen.length > 0) {
+                // Si es un array de imágenes
+                if (productos[i].producto_imagen[0].filename) {
                     imagenSrc = `/${productos[i].producto_imagen[0].filename}`;
+                } else if (typeof productos[i].producto_imagen[0] === 'string') {
+                    imagenSrc = `/${productos[i].producto_imagen[0]}`;
                 }
-
-                const card = `
-                    <div class="product-card" style="animation-delay: ${i * 0.05}s">
-                        <a href="/producto/${nombre}/${i + 1}">
-                            <div class="product-image-container">
-                                <img src="${imagenSrc}" alt="${nombre}" class="product-image">
-                            </div>
-                        </a>
-                        <div class="product-body">
-                            <a href="/producto/${nombre}/${i + 1}" class="product-name">
-                                ${nombre}
-                            </a>
-                            <div class="product-description">
-                                ${descripcion}
-                            </div>
-                            <div class="product-price">${precio}</div>
-                        </div>
-                        <p class="hidden" id="id">${i + 1}</p>
-                    </div>
-                `;
-                
-                contenedor.innerHTML += card;
+            } else if (typeof productos[i].producto_imagen === 'string') {
+                // Si es una string directa
+                imagenSrc = productos[i].producto_imagen.startsWith('/') 
+                    ? productos[i].producto_imagen 
+                    : `/${productos[i].producto_imagen}`;
             }
         }
+        
+        // Imagen por defecto si no hay imagen
+        if (!imagenSrc) {
+            imagenSrc = '/placeholder.png';
+        }
+
+        const card = `
+            <div class="product-card" style="animation-delay: ${i * 0.05}s">
+                <a href="/producto/${encodeURIComponent(nombre)}/${i + 1}">
+                    <div class="product-image-container">
+                        <img 
+                            src="${imagenSrc}" 
+                            alt="${nombre}" 
+                            class="product-image"
+                            loading="lazy"
+                            onerror="this.onerror=null; this.src='/placeholder.png'; this.style.objectFit='contain';"
+                        >
+                    </div>
+                </a>
+                <div class="product-body">
+                    <a href="/producto/${encodeURIComponent(nombre)}/${i + 1}" class="product-name">
+                        ${nombre}
+                    </a>
+                    <div class="product-description">
+                        ${descripcion}
+                    </div>
+                    <div class="product-price">${precio}</div>
+                </div>
+                <p class="hidden" id="id">${i + 1}</p>
+            </div>
+        `;
+        
+        contenedor.innerHTML += card;
+    }
+}
 
         // ------------ codigo -----------------
         if (nombre === "undefined") {
