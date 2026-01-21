@@ -1,192 +1,563 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Mensajería - Vendedor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        .derecha{
-            text-align: right;
+        :root {
+            --primary: #0A0E27;
+            --primary-light: #1A1F3A;
+            --accent: #00D9FF;
+            --accent-secondary: #8A2BE2;
+            --text: #E8E8E8;
+            --text-dim: #A0A0A0;
+            --bg: #050816;
+            --card-bg: #0F1428;
+            --border: rgba(0, 217, 255, 0.2);
+            --message-sent: linear-gradient(135deg, #00D9FF, #0099CC);
+            --message-received: #1A1F3A;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--card-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .btn-new-chat {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, var(--accent), #0099CC);
+            color: var(--primary);
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-new-chat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .new-chat-panel {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .chats-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+            min-height: 0;
+        }
+
+        .chats-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chats-list::-webkit-scrollbar-track {
+            background: var(--primary);
+        }
+
+        .chats-list::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        .chat-item {
+            padding: 1rem;
+            margin-bottom: 0.3rem;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text);
+            font-weight: 500;
+            width: 100%;
+            text-align: left;
+        }
+
+        .chat-item:hover {
+            background: var(--primary-light);
+            border-color: var(--accent);
+            transform: translateX(4px);
+        }
+
+        .chat-item.active {
+            background: var(--primary-light);
+            border-color: var(--accent);
+        }
+
+        /* Main chat area */
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .chat-header-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--accent);
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-height: 0;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: var(--primary);
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+        }
+
+        .message-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-group.sent {
+            align-items: flex-end;
+        }
+
+        .message-group.received {
+            align-items: flex-start;
+        }
+
+        .message-author {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            padding: 0 0.8rem;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 1rem 1.2rem;
+            border-radius: 16px;
+            word-wrap: break-word;
+        }
+
+        .message-group.sent .message-bubble {
+            background: var(--message-sent);
+            color: var(--primary);
+            border-bottom-right-radius: 4px;
+            font-weight: 500;
+        }
+
+        .message-group.received .message-bubble {
+            background: var(--message-received);
+            color: var(--text);
+            border-bottom-left-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .input-area {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .send-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--accent), #0099CC);
+            color: var(--primary);
+            border: none;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 968px) {
+            body {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .sidebar.mobile-open {
+                display: flex;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 80%;
+                height: 100%;
+                z-index: 1000;
+            }
         }
     </style>
 </head>
 <body>
-    <button onclick="nuevochat()">nuevo chat</button>
-    <div id="nuevochat"></div>
-    <h1>mensajes:</h1>
-    <div id="chats"></div>
-    <div id="mensajes"></div>
-    <div id="enviar"></div>
-   
-    </button>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">Conversaciones</h2>
+            <button onclick="nuevochat()" class="btn-new-chat">+ Nuevo Chat</button>
+        </div>
+        <div id="nuevochat" class="new-chat-panel"></div>
+        <div class="chats-list" id="chats"></div>
+    </div>
+
+    <div class="chat-main">
+        <div class="chat-header">
+            <h1 class="chat-header-title" id="current-chat-name">Selecciona una conversación</h1>
+            <button class="back-btn" onclick="window.location.href='/tienda/admin'">← Volver</button>
+        </div>
+        
+        <div class="messages-container" id="mensajes">
+            <div class="empty-state">Selecciona un chat para comenzar</div>
+        </div>
+        
+        <div id="enviar" class="input-area" style="display: none;"></div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
-
-    
-    
     <script type="module">
-    //--------------declaraciones-------------------
-    let enviardiv= document.getElementById("enviar")
-     let div=document.getElementById("mensajes")
-     let chatsdiv= document.getElementById("chats")
-     let nuevochatdiv= document.getElementById("nuevochat")
-     let usuarios= await fetch("/usuarios").then(function(res){return res}).then(function(res){return res.json()})
-     let res=await fetch("/chats").then(function(res){return res
-        }).then(function(res){return res.json()})
-        console.log(res)
-
-      setInterval(async() => {
-         res=await fetch("/chats").then(function(res){return res
-        }).then(function(res){return res.json()})
-        console.log(res)
-
-      }, 1000);
+        // -------------- declaraciones -------------------
+        let enviardiv = document.getElementById("enviar");
+        let div = document.getElementById("mensajes");
+        let chatsdiv = document.getElementById("chats");
+        let nuevochatdiv = document.getElementById("nuevochat");
+        let usuarios = await fetch("/usuarios").then(res => res.json());
+        let res = await fetch("/chats").then(res => res.json());
         
-        let socket= io()
-         let mensajesuwu=[]
-          let i=0; let a=0; let c=0; let b=0
-          console.log(res)
+        let socket = io();
+        let mensajesuwu = [];
+        let i = 0;
+        let a = 0;
 
-        
+        setInterval(async() => {
+            res = await fetch("/chats").then(res => res.json());
+        }, 1000);
 
- //------------ declaración de funciones---------------
- window.buscarusuario=function buscarusuario(){for(let usuario of usuarios){
-  if (document.getElementById("usuarios").value===usuario){console.log("se encontró el usuario")
-    crearbotones(usuario)}
- }}
-
- window.nuevochat=function nuevochat(){nuevochatdiv.innerHTML=`<input type="text" placeholder="buscar usuario" id="usuarios">
-    <button onclick="buscarusuario()">enviar</button>`}
-    function crearbotones(usuario){
-          let chat= document.getElementById("chats")
-          let boton=document.createElement("button");
-
-         boton.textContent=usuario
-         boton.id=`${usuario}`
-         console.log(usuario)
-
-        boton.onclick=async function(){socket.off("mensajes")
-           enviardiv.innerHTML=`  <input type="text" placeholder='escriba un mensaje' id='mensaje'>
-         <button id='mensajeboton' >enviar</button>`
-         
-         socket.on("mensajes",function(mensajes){mensajesuwu.push(mensajes[0]);
-          console.log("este es mensajesuwu", mensajesuwu)
-           if(mensajes[0].vendedor===false) {return  mostrarmensajes(mensajesuwu,usuario)}
-            })
-            mostrarmensajes(mensajesuwu,usuario);
-            
-      
-
-        document.getElementById("mensajeboton").onclick=function(){enviarmensaje(usuario); console.log("input:",document.getElementById("mensaje").value)
-            let id= setInterval(() => { console.log("se ejecutó el mensajeboton onclick")
-              try{
-              setTimeout(() => {console.log("se ejecutó el setTimeout ")
-                if(mensajesuwu[mensajesuwu.length-1].mensaje!==document.getElementById("mensaje").value){
-                  console.log("mensajesuwu es:",mensajesuwu[mensajesuwu.length-1].mensaje,"el input es",document.getElementById("mensaje").value)
+        // ------------ declaración de funciones ---------------
+        window.buscarusuario = function buscarusuario() {
+            for (let usuario of usuarios) {
+                if (document.getElementById("usuarios").value === usuario) {
+                    console.log("se encontró el usuario");
+                    crearbotones(usuario);
                 }
-           else{mostrarmensajes(mensajesuwu,usuario); clearInterval(id);  document.getElementById("mensaje").value=""}
-          }, 500);
-         }catch{
+            }
+        }
+
+        window.nuevochat = function nuevochat() {
+            nuevochatdiv.innerHTML = `
+                <input type="text" placeholder="Buscar usuario" id="usuarios" class="search-input">
+                <button onclick="buscarusuario()" class="btn-new-chat">Buscar</button>
+            `;
+        }
+
+        function crearbotones(usuario) {
+            let chat = document.getElementById("chats");
+            let boton = document.createElement("button");
+            boton.textContent = usuario;
+            boton.id = `${usuario}`;
+            boton.className = "chat-item";
+
+            boton.onclick = async function() {
+                // Update UI
+                document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
+                boton.classList.add('active');
+                document.getElementById('current-chat-name').textContent = usuario;
+                document.getElementById('enviar').style.display = 'flex';
+                div.innerHTML = '';
+
+                socket.off("mensajes");
+                
+                enviardiv.innerHTML = `
+                    <input type="text" placeholder='Escriba un mensaje' id='mensaje' class="message-input" onkeypress="if(event.key === 'Enter') document.getElementById('mensajeboton').click()">
+                    <button id='mensajeboton' class="send-btn">Enviar</button>
+                `;
+
+                socket.on("mensajes", function(mensajes) {
+                    mensajesuwu.push(mensajes[0]);
+                    if (mensajes[0].vendedor === false) {
+                        return mostrarmensajes(mensajesuwu, usuario);
+                    }
+                });
+                
+                mostrarmensajes(mensajesuwu, usuario);
+
+                document.getElementById("mensajeboton").onclick = function() {
+                    enviarmensaje(usuario);
+                    let id = setInterval(() => {
+                        try {
+                            setTimeout(() => {
+                                if (mensajesuwu[mensajesuwu.length - 1].mensaje !== document.getElementById("mensaje").value) {
+                                    console.log("mensajesuwu es:", mensajesuwu[mensajesuwu.length - 1].mensaje, "el input es", document.getElementById("mensaje").value);
+                                } else {
+                                    mostrarmensajes(mensajesuwu, usuario);
+                                    clearInterval(id);
+                                    document.getElementById("mensaje").value = "";
+                                }
+                            }, 500);
+                        } catch {
+                            setTimeout(() => {
+                                if (mensajesuwu[mensajesuwu.length - 1].mensaje !== document.getElementById("mensaje").value) {
+                                    throw new Error();
+                                } else {
+                                    mostrarmensajes(mensajesuwu, usuario);
+                                    document.getElementById("mensaje").value = "";
+                                }
+                            }, 500);
+                        }
+                    }, 600);
+                }
+            }
+
+            chat.appendChild(boton);
+        }
+
+        function mostrarmensajes(mensajes, usuario) {
+            if (mensajes.length === 1 && mensajes[0].vendedor && mensajes[0].usuario_respuesta === usuario) {
+                div.innerHTML += `
+                    <div class="message-group sent">
+                        <div class="message-bubble">${mensajes[0].mensaje}</div>
+                    </div>
+                `;
+                div.scrollTop = div.scrollHeight;
+                return;
+            }
+
+            if (mensajes.length === 1 && mensajes[0].vendedor === false && mensajes[0].usuario === usuario) {
+                div.innerHTML += `
+                    <div class="message-group received">
+                        <div class="message-bubble">${mensajes[0].mensaje}</div>
+                    </div>
+                `;
+                div.scrollTop = div.scrollHeight;
+                return;
+            }
+
+            if (mensajes.length > 1) {
+                div.innerHTML = "";
+                let lastType = null;
+
+                for (let mensaje of mensajes) {
+                    if (mensaje.vendedor === false && mensaje.usuario === usuario) {
+                        if (lastType !== 'received' || i === 0) {
+                            div.innerHTML += `
+                                <div class="message-group received">
+                                    <div class="message-author">${mensaje.usuario}</div>
+                                    <div class="message-bubble">${mensaje.mensaje}</div>
+                                </div>
+                            `;
+                            lastType = 'received';
+                            i = 1;
+                            a = 0;
+                        } else {
+                            div.innerHTML += `
+                                <div class="message-group received">
+                                    <div class="message-bubble">${mensaje.mensaje}</div>
+                                </div>
+                            `;
+                        }
+                    } else if (mensaje.vendedor && mensaje.usuario_respuesta === usuario) {
+                        if (lastType !== 'sent' || a === 0) {
+                            div.innerHTML += `
+                                <div class="message-group sent">
+                                    <div class="message-author">Vendedor</div>
+                                    <div class="message-bubble">${mensaje.mensaje}</div>
+                                </div>
+                            `;
+                            lastType = 'sent';
+                            a = 1;
+                            i = 0;
+                        } else {
+                            div.innerHTML += `
+                                <div class="message-group sent">
+                                    <div class="message-bubble">${mensaje.mensaje}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            }
             
-            setTimeout(() => {if(mensajesuwu[mensajesuwu.length-1].mensaje!==document.getElementById("mensaje").value){new Error}
-           else{mostrarmensajes(mensajesuwu,usuario);  document.getElementById("mensaje").value=""}
-          }, 500)}
-            }, 600);
-
-  
-         }}
-
-        chat.appendChild(boton)
-        }  
- function mostrarmensajes(mensajes,usuario){ console.log("mensajes: ",mensajes)
- for(let mensaje0 of mensajes){ console.log(mensaje0); if(mensaje0.usuario_respuesta===usuario){++c}
-if(mensaje0.usuario===usuario){++c}}
- if(c>1 && div.innerHTML===""){div.innerHTML=""}
-     if(mensajes.length===1 && mensajes[0].vendedor && mensajes[0].usuario_respuesta===usuario){div.innerHTML+=` <br>
-      <p class="derecha">${mensajes[0].mensaje}</p> <br>  `
-      return}
-
-       if(mensajes.length===1 && mensajes[0].vendedor===false && mensajes[0].usuario===usuario){div.innerHTML+=` <br>
-      <p>${mensajes[0].mensaje}</p> <br>  `
-      return}
-
-    if(mensajes.length>1){div.innerHTML="";
-  
-    for(let mensaje of mensajes)
-     {
-      
-        if(mensaje.vendedor===false && i===0 && mensaje.usuario===usuario){++i, a=0;div.innerHTML+=`<p>${mensaje.usuario}:</p> <br>
-      <p>${mensaje.mensaje}</p> <br>  `}
-
-      else if(mensaje.vendedor===false && i!==0 && mensaje.usuario===usuario){div.innerHTML+=` <br>
-      <p>${mensaje.mensaje}</p> <br>  `}
-
-    else if(mensaje.vendedor && a===0 && mensaje.usuario_respuesta===usuario){ i=0; ++a
-        div.innerHTML+=`<p class="derecha">vendedor:</p> <br>
-      <p class="derecha">${mensaje.mensaje}</p> <br>  `
-    }
- else if(mensaje.vendedor && a!==0 && mensaje.usuario_respuesta===usuario){ i=0;   
-        div.innerHTML+=` <br>
-      <p class="derecha">${mensaje.mensaje}</p> <br>  `
-    }}}
-    
-    else
-     {
-      if(mensajes.vendedor===false){++i, a=0;div.innerHTML+=`<p>${mensajes.usuario}:</p> <br>
-      <p>${mensajes.mensaje}</p> <br>  `}
-      
-      else if(mensajes.vendedor===false && i!==0){div.innerHTML+=` <br>
-      <p>${mensajes.mensaje}</p> <br>  `}
-    else if(mensajes.vendedor){ i=0
-        div.innerHTML+=`<p class="derecha">vendedor:</p> <br>
-      <p class="derecha">${mensajes.mensaje}</p> <br>  `
-    }
- else if(mensajes.vendedor){ i=0; ++a
-        div.innerHTML+=` <br>
-      <p class="derecha">${mensajes.mensaje}</p> <br>  `
-    }}
-    
- }
-
- window.enviarmensaje= async function enviarmensaje(usuario){ console.log("se ejecutó la función del onclick")
- await fetch("/mensajes",{method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({usuario:"vendedor",
-        mensaje: document.getElementById("mensaje").value,
-        vendedor: true,
-        usuario_respuesta: usuario//usuario al que el vendedor responde
-    })
- })
- console.log("se envió el mensaje")
- }
-
- //------------código----------------
-  setInterval(() => {
-     chatsdiv.innerHTML=""
-        for(let usuario of res){ 
-        
-         crearbotones(usuario)
-        }
-  }, 1000);      
-  chatsdiv.innerHTML=""
-        for(let usuario of res){ 
-        
-         crearbotones(usuario)
+            div.scrollTop = div.scrollHeight;
         }
 
-        //------------websocket--------------------
-      function socketfunction(mensajes){mensajesuwu=mensajes
-          console.log("mensajesuwu es:",mensajesuwu);
-          socket.off("mensajes",socketfunction)
+        window.enviarmensaje = async function enviarmensaje(usuario) {
+            await fetch("/mensajes", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    usuario: "vendedor",
+                    mensaje: document.getElementById("mensaje").value,
+                    vendedor: true,
+                    usuario_respuesta: usuario
+                })
+            });
         }
-          socket.on("mensajes",socketfunction)
 
-    
+        // ------------ código ----------------
+        setInterval(() => {
+            chatsdiv.innerHTML = "";
+            for (let usuario of res) {
+                crearbotones(usuario);
+            }
+        }, 1000);
 
-  
-        
-    
+        chatsdiv.innerHTML = "";
+        for (let usuario of res) {
+            crearbotones(usuario);
+        }
 
-
+        // ------------ websocket --------------------
+        function socketfunction(mensajes) {
+            mensajesuwu = mensajes;
+            console.log("mensajesuwu es:", mensajesuwu);
+            socket.off("mensajes", socketfunction);
+        }
+        socket.on("mensajes", socketfunction);
     </script>
 </body>
 </html>
