@@ -1,160 +1,547 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-
-
-
-<body>
-    <div id="contenedor"></div>
-    <p>comentarios:</p>
-<div id="comentarios"></div>
-    <button onclick="window.location.href='/mensajeria/<%= usuario %>'">contactar con el vendedor</button>
-    <script src="/socket.io/socket.io.js"></script>
-    <button onclick="comprobar()">comprar</button>
-    
-    <input type="text" placeholder="enviar comentario" id="comentario"> <button onclick="enviarcomentarios()">enviar</button>
-    <script type="module">
-            //-----------declaración de variables---------------
-            let i=0
-            let respuestas=[]
-            let id="<%= id %>"
-          let usuario= "<%= usuario %>"
-          let socket=io()
-          let productos=await fetch("/verproductos").then(function(res){return res.json()})
-
-          //---------------declaración de funciones------------------
-      function mostrarcomentarios(comentarios){ console.log(respuestas)
-               let i=0
-             const comentariodiv = document.getElementById("comentarios")
-             comentariodiv.innerHTML=""
-
-            for(let comentario of comentarios){
-               let comentusuario= document.createElement("p")
-               let coment= document.createElement("p")
-
-               comentusuario.textContent= comentario.usuario;
-               coment.textContent=comentario.comentario
-               document.createElement("br")
-                
-              if(comentario.producto_id=="<%= id %>"){ comentariodiv.innerHTML +=`<p>${comentusuario.textContent} dice:</p>
-              <p>${coment.textContent}</p>
-              <br> `}
-
-              ++i
-              for(let respuesta of respuestas){
-                if(respuesta.comentario===coment.textContent && respuesta.usuario_al_que_se_responde===comentusuario.textContent && respuesta.producto_id=="<%= id %>"){
-                comentariodiv.innerHTML +=`
-              <p>respuesta:${respuesta.respuesta}, @${respuesta.usuario_al_que_se_responde}</p>
-              <br> `        
-                }}
-            }
-            
+    <title>Producto - Detalles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A0E27;
+            --primary-light: #1A1F3A;
+            --accent: #00D9FF;
+            --accent-secondary: #8A2BE2;
+            --accent-glow: rgba(0, 217, 255, 0.3);
+            --text: #E8E8E8;
+            --text-dim: #A0A0A0;
+            --bg: #050816;
+            --card-bg: #0F1428;
+            --border: rgba(0, 217, 255, 0.2);
+            --shadow: rgba(0, 217, 255, 0.1);
         }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        window.enviarcomentarios= async function enviarcomentarios(){
-            await fetch("/comentarios",{method:"POST",
-                headers:{"Content-Type":"application/json"},
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
 
-                body: JSON.stringify({usuario: usuario,
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        /* Back button */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.2rem;
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: var(--primary-light);
+            border-color: var(--accent);
+            transform: translateX(-4px);
+        }
+
+        /* Product layout */
+        .product-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Image gallery */
+        .image-gallery {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .main-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        /* Product info */
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .product-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .product-price-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .product-price {
+            font-family: 'Sora', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stock-badge {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            color: #00FF88;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .stock-badge.out {
+            background: rgba(255, 68, 68, 0.1);
+            color: #FF4444;
+            border-color: rgba(255, 68, 68, 0.3);
+        }
+
+        .product-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-dim);
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0099CC);
+            color: var(--primary);
+            box-shadow: 0 4px 15px var(--shadow);
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-light);
+            border-color: var(--accent);
+        }
+
+        /* Comments section */
+        .comments-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            animation: fadeInUp 0.8s ease 0.2s backwards;
+        }
+
+        .comments-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--shadow);
+        }
+
+        .comment-input::placeholder {
+            color: var(--text-dim);
+        }
+
+        .comment {
+            background: var(--primary);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--accent);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-text {
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-reply {
+            margin-top: 0.8rem;
+            padding-left: 1.5rem;
+            border-left: 2px solid var(--border);
+        }
+
+        .reply-badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background: rgba(138, 43, 226, 0.2);
+            color: var(--accent-secondary);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .product-layout {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .image-gallery {
+                position: relative;
+                top: 0;
+            }
+
+            .product-title {
+                font-size: 2rem;
+            }
+
+            .product-price {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .comment-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/tienda" class="back-btn">
+            ← Volver a la tienda
+        </a>
+
+        <div class="product-layout">
+            <div class="image-gallery" id="contenedor"></div>
+            
+            <div class="product-info" id="product-info"></div>
+        </div>
+
+        <div class="comments-section">
+            <h2 class="comments-title">Comentarios</h2>
+            
+            <div class="comment-form">
+                <input type="text" placeholder="Escribe un comentario..." id="comentario" class="comment-input">
+                <button onclick="enviarcomentarios()" class="btn btn-primary">Enviar</button>
+            </div>
+            
+            <div id="comentarios"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="module">
+        // ----------- declaración de variables ---------------
+        let i = 0;
+        let respuestas = [];
+        let id = "<%= id %>";
+        let usuario = "<%= usuario %>";
+        let socket = io();
+        let productos = await fetch("/verproductos").then(res => res.json());
+
+        // --------------- declaración de funciones ------------------
+        function mostrarcomentarios(comentarios) {
+            console.log(respuestas);
+            const comentariodiv = document.getElementById("comentarios");
+            comentariodiv.innerHTML = "";
+
+            for (let comentario of comentarios) {
+                if (comentario.producto_id == "<%= id %>") {
+                    comentariodiv.innerHTML += `
+                        <div class="comment">
+                            <div class="comment-author">${comentario.usuario} dice:</div>
+                            <div class="comment-text">${comentario.comentario}</div>
+                        </div>
+                    `;
+
+                    for (let respuesta of respuestas) {
+                        if (respuesta.comentario === comentario.comentario && 
+                            respuesta.usuario_al_que_se_responde === comentario.usuario && 
+                            respuesta.producto_id == "<%= id %>") {
+                            comentariodiv.innerHTML += `
+                                <div class="comment-reply">
+                                    <span class="reply-badge">Respuesta</span>
+                                    <div class="comment-text">
+                                        ${respuesta.respuesta} <span style="color: var(--accent);">@${respuesta.usuario_al_que_se_responde}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            }
+        }
+
+        window.enviarcomentarios = async function enviarcomentarios() {
+            await fetch("/comentarios", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    usuario: usuario,
                     comentario: document.getElementById("comentario").value,
                     producto: "<%= nombre %>",
-                producto_id: id})})
-                    
-                    .then(function(res){return res.text()}).then(function(res){
-                if(res==="los visitantes no pueden comentar"){alert(res)}
+                    producto_id: id
+                })
             })
+            .then(res => res.text())
+            .then(res => {
+                if (res === "los visitantes no pueden comentar") {
+                    alert(res);
+                } else {
+                    document.getElementById("comentario").value = "";
+                }
+            });
         }
 
-          window.comprobar=async function comprobar(){
-            
-
-            await fetch("/comprobar-usuario",{method:"POST",
-                headers:{"Content-Type":"application/json"},
+        window.comprobar = async function comprobar() {
+            await fetch("/comprobar-usuario", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({producto: "<%= nombre %>"})
             })
-            
-            .then(function(res){
-               return  res.text()
-            })
-            
-            .then(async function(res){ 
-                if(res==="ingrese sesion para comprar"){alert(res)}
-                if(Number(document.getElementById("stock").textContent.split(" ")[1])===0){alert("stock vacío")}
-                else if(res==="ok" && Number(document.getElementById("stock").textContent.split(" ")[1])>0){ let stock=document.getElementById("stock").textContent.split(" ")[1]
-            console.log("el stock es",stock)
-             document.getElementById("stock").textContent=`stock: ${Number(stock)-1}`
-
-                    await fetch("/comprar").then(function(data){
-                    return data.json()
-                }).then(function(data){window.location.href=data.init_point})}
-            })
+            .then(res => res.text())
+            .then(async res => {
+                if (res === "ingrese sesion para comprar") {
+                    alert(res);
+                } else if (Number(document.getElementById("stock").textContent) === 0) {
+                    alert("Stock vacío");
+                } else if (res === "ok" && Number(document.getElementById("stock").textContent) > 0) {
+                    let stock = Number(document.getElementById("stock").textContent);
+                    document.getElementById("stock").textContent = stock - 1;
+                    
+                    await fetch("/comprar")
+                        .then(data => data.json())
+                        .then(data => window.location.href = data.init_point);
+                }
+            });
         }
-        
 
-        function mostrarproductos(producto){
-            let contenedor= document.getElementById("contenedor")
-        let nombre= document.createElement("h3")
-        nombre.textContent=producto.producto_nombre;
+        function mostrarproductos(producto) {
+            const contenedor = document.getElementById("contenedor");
+            const productInfo = document.getElementById("product-info");
+            const nombre = producto.producto_nombre;
+            const precio = producto.producto_precio;
+            const descripcion = producto.producto_descripcion;
+            const stock = producto.producto_stock;
 
-        let precio= document.createElement("h4")
-        precio.textContent="precio: "+producto.producto_precio
+            let imagenSrc = `/${producto.producto_imagen}`;
+            if (producto.producto_imagen[0]?.filename) {
+                imagenSrc = `/${producto.producto_imagen[0].filename}`;
+            }
 
-        let descripcion=document.createElement("p")
-        descripcion.textContent=producto.producto_descripcion
+            // Image
+            contenedor.innerHTML = `
+                <img src="${imagenSrc}" alt="${nombre}" class="main-image">
+            `;
 
-        let stock= document.createElement("h4")
-        stock.id="stock"
-        stock.textContent="stock: "+ producto.producto_stock
- if(producto.producto_imagen[0].filename){ contenedor.appendChild(nombre)
-    for(let imagen1 of producto.producto_imagen){
-        let imagen= document.createElement("img")
-   imagen.src=`/${imagen1.filename}`
-    
-   contenedor.appendChild(imagen)
-   contenedor.appendChild(precio)
-   contenedor.appendChild(descripcion)
-   contenedor.appendChild(stock)
-    } return
- }
-   let imagen= document.createElement("img")
-   imagen.src=`/${producto.producto_imagen}`
-   imagen.width=500
-   console.log(imagen.src)
- 
-   
-   contenedor.appendChild(nombre)
-   contenedor.appendChild(imagen)
-   contenedor.appendChild(precio)
-   contenedor.appendChild(descripcion)
-   contenedor.appendChild(stock)
-
-
-}
-
-console.log(id)
-
-            //-------código---------
-            for(let producto of productos){ if(producto.producto_id==id){console.log(producto);
-                 mostrarproductos(producto)}}
-
+            // Product info
+            const stockClass = stock > 0 ? '' : 'out';
+            const stockText = stock > 0 ? `Stock: ${stock}` : 'Sin stock';
             
-            //--------websocket----------
-        
-        socket.on("respuestas",function(respuestasdata){
-        respuestas=respuestasdata;
-    console.log("respuestas",respuestas)})
+            productInfo.innerHTML = `
+                <h1 class="product-title">${nombre}</h1>
+                
+                <div class="product-price-section">
+                    <div class="product-price">${precio}</div>
+                    <div class="stock-badge ${stockClass}" id="stock-badge">
+                        ${stockText}
+                    </div>
+                </div>
+                <p hidden id="stock">${stock}</p>
+                
+                <div class="product-description">${descripcion}</div>
+                
+                <div class="action-buttons">
+                    <button onclick="comprobar()" class="btn btn-primary">
+                        🛒 Comprar Ahora
+                    </button>
+                    <button onclick="window.location.href='/mensajeria/<%= usuario %>'" class="btn btn-secondary">
+                        💬 Contactar Vendedor
+                    </button>
+                </div>
+            `;
+        }
 
+        // ------- código ---------
+        for (let producto of productos) {
+            if (producto.producto_id == id) {
+                console.log(producto);
+                mostrarproductos(producto);
+            }
+        }
 
-         socket.on("comentarios", function(comentarios){ 
-        let id= setInterval(() => {
-            if(respuestas.length!==0){mostrarcomentarios(comentarios); clearInterval(id)}
-          }, 100);
-            })
+        // -------- websocket ----------
+        socket.on("respuestas", function(respuestasdata) {
+            respuestas = respuestasdata;
+            console.log("respuestas", respuestas);
+        });
+
+        socket.on("comentarios", function(comentarios) {
+            let intervalId = setInterval(() => {
+                if (respuestas.length !== 0) {
+                    mostrarcomentarios(comentarios);
+                    clearInterval(intervalId);
+                }
+            }, 100);
+        });
     </script>
 </body>
 </html>
