@@ -6,14 +6,51 @@
     <title>productos</title>
 </head>
 <body>
-    <form action="/products" method="post" enctype="multipart/form-data">
-        <input type="text" placeholder="Ingrese el nombre de su producto" name="nombre">
+    <form action="/products" method="post" enctype="multipart/form-data" onsubmit="enviar(event)">
+        <input type="text" placeholder="Ingrese el nombre de su producto" name="nombre" id="nombre">
          <input type="text" placeholder="Ingrese la descripción de su producto" name="descripcion">
-         <input type="file" name="imagen" multiple accept="image/*">
-         <input type="text" placeholder="ingrese el precio en formato: $500" name="precio">
-         <input type="number" placeholder="stock" name="stock">
-         <input type="submit" >
-    </form>
+         <input type="file" name="imagen" multiple accept="image/*" id="imagenes">
+         <input type="text" placeholder="ingrese el precio en formato: $500" size="25" name="precio" id="precio">
+         <input type="number" placeholder="stock" name="stock" id="stock">
+         <button type="submit" > enviar</button>
+    </form> <br>
+
+
+    <p>el precio solo puede estar en pesos uruguayos($) o dólares(US$)</p>
+
+    <script>
+        window.enviar= function enviar(event){
+            let i=0
+            let precio= document.getElementById("precio").value.toLowerCase()
+            let nombre= document.getElementById("nombre").value
+            let stock= Number(document.getElementById("stock").value)
+            let imagen= document.getElementById("imagenes").value;
+
+            if(nombre===""){alert("ingrese un nombre"); event.preventDefault(); return}
+            if(Number.isNaN(precio)){alert("ingrese el stock correctamente"); event.preventDefault(); return}
+            if(imagen.length===0){alert("ingrese una imagen"), event.preventDefault(); return}
+            console.log(precio)
+            if(!/\d/.test(precio)){alert("ingrese un número"),event.preventDefault();return} 
+            if(!precio.startsWith("$") && !precio.startsWith("us$")){alert("la unidad va primero"), event.preventDefault(); return}
+           
+            if(precio===""){alert("inserte un precio"); event.preventDefault(); return}
+
+            if(document.getElementById("precio").value.includes(" ")){alert("no pueden haber espacios")
+                event.preventDefault(); return
+            }
+            if(Number(document.getElementById("precio").value.match(/^-?\d+$/))<0){ alert("debes poner un precio positivo")
+                event.preventDefault(); return
+            }
+            if(document.getElementById("precio").value.match(/[^\d]/g).toString().toLowerCase()!=="$" && document.getElementById("precio").value.match(/[^\d]/g).toString().toLowerCase()!=="u,s,$" || document.getElementById("precio").value.toString()===""){
+                alert("no puso bien la unidad"), event.preventDefault(); return
+            }
+            
+            
+            if(!document.getElementById("precio").value.split("")[0].includes("$") && !precio.startsWith("us$")){
+                alert("ingrese una unidad"); event.preventDefault()
+            }
+        }
+    </script>
 
 
 </body>
