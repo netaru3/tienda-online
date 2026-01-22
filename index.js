@@ -156,19 +156,14 @@ app.post("/products",upload.array("imagen",6),async function(req,res){
 app.post("/comprobar-usuario",async function(req,res){
     if (req.session.usuario===undefined){return res.send("ingrese sesion para comprar")}
     
-   try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
-        usuario: req.session.usuario,
-        notificacion: `el usuario ${req.session.usuario} ha comprado el producto ${req.body.producto}`,
-       producto: req.body.producto
-
-    })}catch(error){console.log("no se pudo crear la notificación",error)};
+  ;
     res.send("ok")
 })
 
 app.post("/editarnombre",async function(req,res){
     let producto= await log_products.findOneAndUpdate({producto_id:req.body.nombre},{producto_nombre: req.body.nombreeditado},{new: true})
 
-    res.send({nombreeditado:req.body.nombreeditado})
+    res.render("producto-admin",{nombreeditado:req.body.nombreeditado})
 })
 
 app.post("/editardescripcion",async function(req,res){
@@ -187,14 +182,13 @@ app.post("/editarprecio",async function(req,res){
     res.send("ok")
 })
 
-app.post("/editarimagen",upload.single("editarimagen"),async function(req,res){
-    let producto= await log_products.findOneAndUpdate({producto_id:req.body.nombre},{
-        producto_imagen: req.file.filename},
+app.post("/editarimagen",upload.array("editarimagen",6),async function(req,res){
+    let producto= await log_products.findOneAndUpdate({producto_id:req.body.id},{
+        producto_imagen: req.files},
     {new: true})
 
     console.log(producto)
-
-    res.render("producto-admin",{nombre:req.body.nombre})
+    res.render("producto-admin",{id:req.body.id, nombre: producto.producto_nombre})
 })
 
 app.post("/editar-stock",async function(req,res){
@@ -308,6 +302,11 @@ app.get("/notificaciones-comprador",async function(req,res){
     res.json(notificaciones)
 })
 
+app.post("/borrar-notificacion",async function(req,res){
+let notificacion= await log_notificaciones_vendedor.findByIdAndUpdate({_id:req.body.id},{show:false})
+res.send("ok")
+})
+
 app.get("/usuarios",async function(req,res){
     let allusers=[]
     let usuarios= await log.find({})
@@ -364,7 +363,15 @@ app.post("/webhook", async function(req, res) {
             
             // Opcional: Obtener más detalles del pago
             // const payment = await Payment.get({ id: paymentId });
-             if(paymentinfo.status==="approved"){ console.log("pago aprobado")
+             if(paymentinfo.status==="approved"){  try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
+        usuario: req.session.usuario,
+        notificacion: `el usuario ${req.session.usuario} ha comprado el producto ${req.body.producto}`,
+       producto: req.body.producto
+
+    })}catch(error){console.log("no se pudo crear la notificación",error)}
+
+    
+                console.log("pago aprobado")
                 let producto= await log_products.find({producto_id: paymentinfo.metadata.id})
     
     if(Number(producto[0].producto_stock)>0){let nuevoproducto= await log_products.findOneAndUpdate({producto_id: producto[0].producto_id},{producto_stock: `${Number(producto[0].producto_stock)-1}`})
