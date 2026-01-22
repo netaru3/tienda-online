@@ -71,6 +71,8 @@
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(10px);
             background: rgba(10, 14, 39, 0.9);
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .admin-badge {
@@ -99,12 +101,15 @@
             background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         .header-actions {
             display: flex;
             gap: 0.8rem;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         /* Buttons */
@@ -193,7 +198,68 @@
         .hero-subtitle {
             color: var(--text-dim);
             font-size: 1.1rem;
+            margin-bottom: 1.5rem;
             animation: fadeInUp 0.8s ease 0.1s backwards;
+        }
+
+        /* Search container */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 0.8s ease 0.2s backwards;
+        }
+
+        #buscador {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        #buscador:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(0, 217, 255, 0.1);
+            background: var(--primary);
+        }
+
+        #buscador::placeholder {
+            color: var(--text-dim);
+        }
+
+        .btn-search {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--accent), #0099CC);
+            color: var(--primary);
+            border: none;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow);
+            white-space: nowrap;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px var(--accent-glow);
+        }
+
+        .btn-search:active {
+            transform: translateY(0);
         }
 
         @keyframes fadeInUp {
@@ -228,6 +294,56 @@
             right: 20px;
         }
 
+        .notifications-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notifications-panel::-webkit-scrollbar-track {
+            background: var(--primary);
+        }
+
+        .notifications-panel::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .notifications-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .close-panel-btn {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-panel-btn:hover {
+            background: var(--primary-light);
+            color: var(--accent);
+        }
+
         .notification-item {
             background: var(--primary-light);
             padding: 1rem;
@@ -235,6 +351,33 @@
             margin-bottom: 0.8rem;
             border-left: 3px solid var(--accent);
             animation: slideIn 0.3s ease;
+            position: relative;
+            padding-right: 3rem;
+        }
+
+        .close-notification-btn {
+            position: absolute;
+            top: 0.8rem;
+            right: 0.8rem;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+
+        .close-notification-btn:hover {
+            background: rgba(255, 68, 68, 0.2);
+            color: #FF4444;
+            opacity: 1;
         }
 
         @keyframes slideIn {
@@ -246,6 +389,33 @@
                 opacity: 1;
                 transform: translateX(0);
             }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+                max-height: 100px;
+                margin-bottom: 0.8rem;
+            }
+            to {
+                opacity: 0;
+                transform: translateX(20px);
+                max-height: 0;
+                margin-bottom: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+        }
+
+        .notification-item.removing {
+            animation: slideOut 0.3s ease forwards;
+        }
+
+        .empty-notifications {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
         }
 
         /* Products section */
@@ -377,6 +547,15 @@
             color: var(--accent);
         }
 
+        /* No results message */
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            grid-column: 1 / -1;
+        }
+
         /* Responsive */
         @media (max-width: 968px) {
             header {
@@ -387,10 +566,26 @@
             .header-actions {
                 flex-wrap: wrap;
                 justify-content: center;
+                width: 100%;
             }
 
             .hero-title {
                 font-size: 2rem;
+            }
+
+            .search-container {
+                flex-direction: row;
+                gap: 0.6rem;
+            }
+
+            #buscador {
+                padding: 0.9rem 1.2rem;
+                font-size: 0.95rem;
+            }
+
+            .btn-search {
+                padding: 0.9rem 1.5rem;
+                font-size: 0.95rem;
             }
 
             .products-grid {
@@ -399,6 +594,15 @@
         }
 
         @media (max-width: 640px) {
+            .search-container {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-search {
+                width: 100%;
+            }
+
             .products-grid {
                 grid-template-columns: 1fr;
             }
@@ -417,7 +621,7 @@
 <body>
     <header>
         <div class="logo-section">
-            <div class="logo">ADMIN PANEL</div>
+           <a href="/tienda/admin"><div class="logo">ADMIN PANEL</div></a> 
             <span class="admin-badge">Administrador</span>
         </div>
         <div class="header-actions">
@@ -441,6 +645,11 @@
     <section class="hero">
         <h1 class="hero-title">Panel de Administración</h1>
         <p class="hero-subtitle">Gestiona tus productos y ventas</p>
+        
+        <div class="search-container">
+            <input type="text" id="buscador" placeholder="🔍 Buscar productos..." onkeypress="if(event.key === 'Enter') buscador()">
+            <button onclick="buscador()" class="btn-search">Buscar</button>
+        </div>
     </section>
 
     <section class="products-section">
@@ -459,31 +668,155 @@
         let notificaciones1 = await fetch("/notificaciones-vendedor")
             .then(res => res.json());
 
+        // Agregar ID único a cada notificación
+        notificaciones1 = notificaciones1.map((notif, index) => ({
+            ...notif,
+            _uniqueId: `notif-${Date.now()}-${index}`
+        }));
+
         console.log(notificaciones1);
 
         // ---------- declaración de funciones ----------------
+        window.removeNotification = async function removeNotification(id) {
+           
+            const notificationElement = document.querySelector(`[data-notification-id="${id}"]`);
+            if (notificationElement) {
+                // Agregar animación de salida
+                notificationElement.classList.add('removing');
+                
+                // Después de la animación, remover el elemento del DOM
+                setTimeout(() => {
+                    notificationElement.remove();
+                    
+                    // Eliminar del array
+                    notificaciones1 = notificaciones1.filter(n => n._id !== id);
+                    
+                    // Si no quedan notificaciones, mostrar estado vacío
+                    const remainingNotifications = document.querySelectorAll('.notification-item:not(.removing)');
+                    if (remainingNotifications.length === 0) {
+                        const div = document.getElementById("notificaciones");
+                        div.innerHTML = `
+                            <div class="notifications-header">
+                                <h3 class="notifications-title">Notificaciones</h3>
+                                <button class="close-panel-btn" onclick="closeNotificationsPanel()">×</button>
+                            </div>
+                            <div class="empty-notifications">
+                                <p style="font-size: 2rem; margin-bottom: 0.5rem;">🔔</p>
+                                <p>No tienes notificaciones</p>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            } 
+            
+            await fetch("/borrar-notificacion",{method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify({id:id})
+            })
+             
+        }
+
+        window.closeNotificationsPanel = function closeNotificationsPanel() {
+            const div = document.getElementById("notificaciones");
+            div.classList.remove('active');
+            a = 0;
+        }
+
         window.notificaciones = function notificaciones() {
             const div = document.getElementById("notificaciones");
             
             if (a === 0) {
                 div.innerHTML = "";
+                
                 if (notificaciones1.length === 0) {
-                    div.innerHTML = '<p style="color: var(--text-dim);">No tienes notificaciones</p>';
+                    div.innerHTML = `
+                        <div class="notifications-header">
+                            <h3 class="notifications-title">Notificaciones</h3>
+                            <button class="close-panel-btn" onclick="closeNotificationsPanel()">×</button>
+                        </div>
+                        <div class="empty-notifications">
+                            <p style="font-size: 2rem; margin-bottom: 0.5rem;">🔔</p>
+                            <p>No tienes notificaciones</p>
+                        </div>
+                    `;
                 } else {
-                    for (let notificacion of notificaciones1) {
-                        div.innerHTML += `
-                            <div class="notification-item">
+                    let html = `
+                        <div class="notifications-header">
+                            <h3 class="notifications-title">Notificaciones</h3>
+                            <button class="close-panel-btn" onclick="closeNotificationsPanel()">×</button>
+                        </div>
+                    `;
+                    
+                    notificaciones1.forEach((notificacion) => { if(notificacion.show!==false){
+                        html += `
+                            <div class="notification-item" data-notification-id="${notificacion._id}">
                                 ${notificacion.notificacion}
+                                <button class="close-notification-btn" onclick="removeNotification('${notificacion._id}')" title="Eliminar notificación">×</button>
                             </div>
                         `;
                     }
+                        
+                    });
+                    
+                    div.innerHTML = html;
                 }
+                
                 div.classList.add('active');
                 a = 1;
             } else {
-                div.classList.remove('active');
-                a = 0;
+                closeNotificationsPanel();
             }
+        }
+
+        window.buscador = function buscador() {
+            const contenedor = document.getElementById("contenedor");
+            const searchTerm = document.getElementById("buscador").value.toLowerCase().trim();
+            contenedor.innerHTML = "";
+            
+            if (!searchTerm) {
+                // Si el buscador está vacío, mostrar todos los productos
+                let i = 0;
+                while (i <= productos.length) {
+                    mostrarproductos(i);
+                    i++;
+                }
+                return;
+            }
+            
+            let z = 0;
+            let found = false;
+            console.log("productos length:", productos.length);
+            
+            while (z <= productos.length) {
+                console.log(z);
+                try {
+                    if (productos[z].producto_nombre && 
+                        productos[z].producto_nombre.toLowerCase().includes(searchTerm)) {
+                        mostrarproductos(z);
+                        found = true;
+                    }
+                } catch(error) {
+                    console.log("error:", error);
+                }
+                z++;
+            }
+            
+            if (!found) {
+                contenedor.innerHTML = `
+                    <div class="no-results">
+                        <p style="font-size: 3rem; margin-bottom: 1rem;">🔍</p>
+                        <p>No se encontró ningún producto con "${document.getElementById("buscador").value}"</p>
+                        <button onclick="resetSearch()" class="btn btn-primary" style="margin-top: 1.5rem;">
+                            Ver todos los productos
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        window.resetSearch = function resetSearch() {
+            document.getElementById("buscador").value = "";
+            buscador();
         }
 
         window.productos = function productos() {
@@ -509,13 +842,13 @@
 
                 contenedor.innerHTML += `
                     <div class="product-card" style="animation-delay: ${i * 0.05}s">
-                        <a href="/producto/${nombre}/${i + 1}">
+                        <a href="/producto/${encodeURIComponent(nombre)}/${i + 1}">
                             <div class="product-image-container">
                                 <img src="${imagenSrc}" alt="${nombre}" class="product-image">
                             </div>
                         </a>
                         <div class="product-body">
-                            <a href="/producto/${nombre}/${i + 1}" class="product-name">
+                            <a href="/producto/${encodeURIComponent(nombre)}/${i + 1}" class="product-name">
                                 ${nombre}
                             </a>
                             <div class="product-description">
@@ -537,11 +870,12 @@
         // Close notifications when clicking outside
         document.addEventListener('click', function(e) {
             const panel = document.getElementById('notificaciones');
+            const notifButton = document.querySelector('.btn-secondary');
+            
             if (!panel.contains(e.target) && 
-                !e.target.closest('.btn-secondary') && 
+                !e.target.closest('.btn-secondary:first-of-type') && 
                 panel.classList.contains('active')) {
-                panel.classList.remove('active');
-                a = 0;
+                closeNotificationsPanel();
             }
         });
     </script>
