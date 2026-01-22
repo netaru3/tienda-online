@@ -106,10 +106,106 @@
             top: 2rem;
         }
 
+        /* Image gallery styles */
+        .product-images-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .main-image-container {
+            width: 100%;
+            aspect-ratio: 1;
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            position: relative;
+            background: var(--primary);
+        }
+
         .product-image {
             width: 100%;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-image:hover {
+            transform: scale(1.05);
+        }
+
+        .image-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .image-nav:hover {
+            background: var(--accent);
+            color: var(--primary);
+            border-color: var(--accent);
+        }
+
+        .image-nav.prev {
+            left: 1rem;
+        }
+
+        .image-nav.next {
+            right: 1rem;
+        }
+
+        .image-count {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--text);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .thumbnails-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .thumbnail {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .thumbnail:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .thumbnail.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .product-name {
@@ -260,6 +356,7 @@
             display: flex;
             gap: 0.8rem;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }
 
         .reply {
@@ -276,6 +373,10 @@
             .product-preview {
                 position: relative;
                 top: 0;
+            }
+
+            .thumbnails-container {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
             }
         }
     </style>
@@ -305,11 +406,12 @@
 
                 <!-- Edit Image -->
                 <div class="edit-section">
-                    <h3 class="section-title">📷 Imagen</h3>
+                    <h3 class="section-title">📷 Imágenes</h3>
                     <form action="/editarimagen" method="post" enctype="multipart/form-data" class="file-upload-section">
-                        <input type="file" name="editarimagen" id="editarimagen" class="form-input">
-                        <input type="hidden" name="nombre" value="<%= nombre %>">
-                        <button type="submit" class="btn btn-primary">Actualizar Imagen</button>
+                        <p class="file-label">Agregar más imágenes o reemplazar existentes</p>
+                        <input type="file" name="editarimagen" id="editarimagen" multiple accept="image/*" class="form-input">
+                        <input type="hidden" name="id" value="<%= id %>">
+                        <button type="submit" class="btn btn-primary">Actualizar Imágenes</button>
                     </form>
                 </div>
 
@@ -361,6 +463,10 @@
         let respuestas = [];
         let productos = await fetch("/verproductos").then(res => res.json());
         let id = "<%= id %>";
+        let currentImageIndex = 0;
+        let productImages = [];
+
+        console.log("id", id)
 
         // ------------ websocket --------------------
         let socket = io();
@@ -379,6 +485,38 @@
                 }
             }, 5);
         });
+
+        // ---------------- funciones de galería ------------------
+        function changeImage(index) {
+            currentImageIndex = index;
+            const mainImage = document.getElementById('main-image');
+            mainImage.src = productImages[index];
+            
+            // Update image count
+            const imageCount = document.getElementById('image-count');
+            if (imageCount) {
+                imageCount.textContent = `${index + 1}/${productImages.length}`;
+            }
+            
+            // Update active thumbnail
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                if (i === index) {
+                    thumb.classList.add('active');
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % productImages.length;
+            changeImage(currentImageIndex);
+        }
+
+        function prevImage() {
+            currentImageIndex = (currentImageIndex - 1 + productImages.length) % productImages.length;
+            changeImage(currentImageIndex);
+        }
 
         // ---------------- comentarios ------------------
         window.enviarrespuesta = async function enviarrespuesta(usuario, comentario, numrespuesta) {
@@ -410,7 +548,7 @@
                                 <button onclick="window.location.href='/mensajeria/${comentario.usuario}'" class="btn btn-primary">
                                     💬 Contactar
                                 </button>
-                                <input type="text" id="respuesta${i}" placeholder="Escribe una respuesta..." class="form-input">
+                                <input type="text" id="respuesta${i}" placeholder="Escribe una respuesta..." class="form-input" style="flex: 1;">
                                 <button onclick="enviarrespuesta('${comentario.usuario}','${comentario.comentario}','${i}')" class="btn btn-primary">
                                     Enviar
                                 </button>
@@ -458,7 +596,7 @@
                     nombre: id
                 })
             });
-            let data = await url.json();
+           // let data = await url.json();
             document.getElementById("descripcion").textContent = document.getElementById("editardescripcion").value;
         }
 
@@ -472,12 +610,12 @@
                     nombre: id
                 })
             });
-            let data = await url.json();
-            document.getElementById("precio").textContent = document.getElementById("editarprecio").value;
+            //let data = await url.json();
+            document.getElementById("precio").textContent ="precio: "+ document.getElementById("editarprecio").value;
         }
 
         window.stock = async function stock() {
-            document.getElementById("stock").textContent = document.getElementById("editarstock").value;
+            document.getElementById("stock").textContent ="stock: "+document.getElementById("editarstock").value;
             await fetch("/editar-stock", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -495,18 +633,68 @@
             let descripcion = producto.producto_descripcion;
             let stock = "stock: " + producto.producto_stock;
 
-            let imagenSrc = `/${producto.producto_imagen}`;
-            if (producto.producto_imagen[0]?.filename) {
-                imagenSrc = `/${producto.producto_imagen[0].filename}`;
+            // Procesar todas las imágenes
+            productImages = [];
+            
+            if (producto.producto_imagen) {
+                if (Array.isArray(producto.producto_imagen)) {
+                    producto.producto_imagen.forEach(img => {
+                        if (img.filename) {
+                            productImages.push(`/${img.filename}`);
+                        } else if (typeof img === 'string') {
+                            productImages.push(img.startsWith('/') ? img : `/${img}`);
+                        }
+                    });
+                } else if (typeof producto.producto_imagen === 'string') {
+                    productImages.push(producto.producto_imagen.startsWith('/') ? producto.producto_imagen : `/${producto.producto_imagen}`);
+                }
             }
 
+            // Si no hay imágenes, usar placeholder
+            if (productImages.length === 0) {
+                productImages.push('/placeholder.png');
+            }
+
+            // Crear galería de imágenes
+            let galleryHTML = `
+                <div class="product-images-container">
+                    <div class="main-image-container">
+                        <img src="${productImages[0]}" alt="${nombre}" class="product-image" id="main-image">
+                        ${productImages.length > 1 ? `
+                            <div class="image-nav prev" onclick="prevImage()">‹</div>
+                            <div class="image-nav next" onclick="nextImage()">›</div>
+                            <div class="image-count" id="image-count">1/${productImages.length}</div>
+                        ` : ''}
+                    </div>
+            `;
+
+            // Agregar thumbnails si hay más de una imagen
+            if (productImages.length > 1) {
+                galleryHTML += '<div class="thumbnails-container">';
+                productImages.forEach((imgSrc, index) => {
+                    galleryHTML += `
+                        <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeImage(${index})">
+                            <img src="${imgSrc}" alt="${nombre} ${index + 1}">
+                        </div>
+                    `;
+                });
+                galleryHTML += '</div>';
+            }
+
+            galleryHTML += '</div>';
+
             contenedor.innerHTML = `
-                <img src="${imagenSrc}" class="product-image" id="imagen">
+                ${galleryHTML}
                 <h3 class="product-name" id="nombre">${nombre}</h3>
                 <p class="product-price" id="precio">${precio}</p>
                 <p class="product-desc" id="descripcion">${descripcion}</p>
                 <p class="product-stock" id="stock">${stock}</p>
             `;
+
+            // Hacer las funciones globales
+            window.changeImage = changeImage;
+            window.nextImage = nextImage;
+            window.prevImage = prevImage;
         }
 
         console.log(id);
