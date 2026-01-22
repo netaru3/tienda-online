@@ -109,12 +109,105 @@
             top: 2rem;
         }
 
-        .main-image {
+        .main-image-container {
             width: 100%;
             aspect-ratio: 1;
-            object-fit: cover;
+            overflow: hidden;
             border-radius: 12px;
             margin-bottom: 1rem;
+            position: relative;
+            background: var(--primary);
+        }
+
+        .main-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: zoom-in;
+            transition: transform 0.3s ease;
+        }
+
+        .main-image:hover {
+            transform: scale(1.05);
+        }
+
+        /* Thumbnails */
+        .thumbnails-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .thumbnail {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .thumbnail:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .thumbnail.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-count {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--text);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Navigation arrows for images */
+        .image-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .image-nav:hover {
+            background: var(--accent);
+            color: var(--primary);
+            border-color: var(--accent);
+        }
+
+        .image-nav.prev {
+            left: 1rem;
+        }
+
+        .image-nav.next {
+            right: 1rem;
         }
 
         /* Product info */
@@ -346,6 +439,10 @@
             .product-price {
                 font-size: 2rem;
             }
+
+            .thumbnails-container {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            }
         }
 
         @media (max-width: 640px) {
@@ -359,6 +456,11 @@
 
             .comment-form {
                 flex-direction: column;
+            }
+
+            .image-nav {
+                width: 35px;
+                height: 35px;
             }
         }
     </style>
@@ -396,6 +498,8 @@
         let usuario = "<%= usuario %>";
         let socket = io();
         let productos = await fetch("/verproductos").then(res => res.json());
+        let currentImageIndex = 0;
+        let productImages = [];
 
         // --------------- declaración de funciones ------------------
         function mostrarcomentarios(comentarios) {
@@ -474,6 +578,31 @@
             });
         }
 
+        function changeImage(index) {
+            currentImageIndex = index;
+            const mainImage = document.getElementById('main-image');
+            mainImage.src = productImages[index];
+            
+            // Update active thumbnail
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                if (i === index) {
+                    thumb.classList.add('active');
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+        }
+
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % productImages.length;
+            changeImage(currentImageIndex);
+        }
+
+        function prevImage() {
+            currentImageIndex = (currentImageIndex - 1 + productImages.length) % productImages.length;
+            changeImage(currentImageIndex);
+        }
+
         function mostrarproductos(producto) {
             const contenedor = document.getElementById("contenedor");
             const productInfo = document.getElementById("product-info");
@@ -482,15 +611,56 @@
             const descripcion = producto.producto_descripcion;
             const stock = producto.producto_stock;
 
-            let imagenSrc = `/${producto.producto_imagen}`;
-            if (producto.producto_imagen[0]?.filename) {
-                imagenSrc = `/${producto.producto_imagen[0].filename}`;
+            // Procesar todas las imágenes
+            productImages = [];
+            
+            if (producto.producto_imagen) {
+                if (Array.isArray(producto.producto_imagen)) {
+                    // Si es un array de objetos con filename
+                    producto.producto_imagen.forEach(img => {
+                        if (img.filename) {
+                            productImages.push(`/${img.filename}`);
+                        } else if (typeof img === 'string') {
+                            productImages.push(img.startsWith('/') ? img : `/${img}`);
+                        }
+                    });
+                } else if (typeof producto.producto_imagen === 'string') {
+                    // Si es una sola imagen como string
+                    productImages.push(producto.producto_imagen.startsWith('/') ? producto.producto_imagen : `/${producto.producto_imagen}`);
+                }
             }
 
-            // Image
-            contenedor.innerHTML = `
-                <img src="${imagenSrc}" alt="${nombre}" class="main-image">
+            // Si no hay imágenes, usar placeholder
+            if (productImages.length === 0) {
+                productImages.push('/placeholder.png');
+            }
+
+            // Crear galería de imágenes
+            let galleryHTML = `
+                <div class="main-image-container">
+                    <img src="${productImages[0]}" alt="${nombre}" class="main-image" id="main-image">
+                    ${productImages.length > 1 ? `
+                        <div class="image-nav prev" onclick="prevImage()">‹</div>
+                        <div class="image-nav next" onclick="nextImage()">›</div>
+                        <div class="image-count">${currentImageIndex + 1}/${productImages.length}</div>
+                    ` : ''}
+                </div>
             `;
+
+            // Agregar thumbnails si hay más de una imagen
+            if (productImages.length > 1) {
+                galleryHTML += '<div class="thumbnails-container">';
+                productImages.forEach((imgSrc, index) => {
+                    galleryHTML += `
+                        <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeImage(${index})">
+                            <img src="${imgSrc}" alt="${nombre} ${index + 1}">
+                        </div>
+                    `;
+                });
+                galleryHTML += '</div>';
+            }
+
+            contenedor.innerHTML = galleryHTML;
 
             // Product info
             const stockClass = stock > 0 ? '' : 'out';
@@ -518,6 +688,11 @@
                     </button>
                 </div>
             `;
+
+            // Actualizar contador de imágenes cuando se cambia
+            window.changeImage = changeImage;
+            window.nextImage = nextImage;
+            window.prevImage = prevImage;
         }
 
         // ------- código ---------
