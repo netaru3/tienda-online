@@ -114,6 +114,8 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -1px;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         .header-actions {
@@ -187,18 +189,77 @@
             font-family: 'Sora', sans-serif;
             font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             background: linear-gradient(135deg, var(--text), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: fadeInUp 0.8s ease;
         }
 
+        /* Search container */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 0.8s ease 0.2s backwards;
+        }
+
+        #buscador {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        #buscador:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(0, 217, 255, 0.1);
+            background: var(--primary);
+        }
+
+        #buscador::placeholder {
+            color: var(--text-dim);
+        }
+
+        .btn-search {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--accent), #0099CC);
+            color: var(--primary);
+            border: none;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow);
+            white-space: nowrap;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px var(--accent-glow);
+        }
+
+        .btn-search:active {
+            transform: translateY(0);
+        }
+
         .welcome-subtitle {
             font-size: 1.1rem;
             color: var(--text-dim);
-            margin-bottom: 2rem;
-            animation: fadeInUp 0.8s ease 0.2s backwards;
+            animation: fadeInUp 0.8s ease 0.3s backwards;
         }
 
         @keyframes fadeInUp {
@@ -379,25 +440,6 @@
             }
         }
 
-        .product-image-container {
-            width: 100%;
-            height: 220px;
-            overflow: hidden;
-            position: relative;
-            background: var(--primary);
-        }
-
-        .product-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .product-card:hover .product-image {
-            transform: scale(1.1);
-        }
-
         .product-body {
             padding: 1.5rem;
         }
@@ -436,6 +478,14 @@
             margin-bottom: 0.5rem;
         }
 
+        /* No results message */
+        .no-results {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-dim);
+            font-size: 1.2rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .logo {
@@ -444,6 +494,21 @@
 
             .welcome-title {
                 font-size: 1.8rem;
+            }
+
+            .search-container {
+                flex-direction: row;
+                gap: 0.6rem;
+            }
+
+            #buscador {
+                padding: 0.9rem 1.2rem;
+                font-size: 0.95rem;
+            }
+
+            .btn-search {
+                padding: 0.9rem 1.5rem;
+                font-size: 0.95rem;
             }
 
             .welcome-subtitle {
@@ -489,6 +554,15 @@
                 padding: 1rem 4%;
             }
 
+            .search-container {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-search {
+                width: 100%;
+            }
+
             .products-grid {
                 grid-template-columns: 1fr;
             }
@@ -521,7 +595,7 @@
     <div class="overlay" id="overlay" onclick="cerrarNotificaciones()"></div>
 
     <header>
-        <div class="logo">MARKETPLACE</div>
+       <a href="/tienda/<%= nombre %>"><div class="logo">MARKETPLACE</div></a> 
         <div class="header-actions">
             <button onclick="notificaciones()" class="btn btn-icon" id="notif-btn">
                 🔔 <span>Notificaciones</span>
@@ -551,6 +625,12 @@
 
     <section class="welcome-section">
         <h1 class="welcome-title" id="bienvenida">Bienvenido</h1>
+        
+        <div class="search-container">
+            <input type="text" id="buscador" placeholder="🔍 Buscar productos..." onkeypress="if(event.key === 'Enter') buscador()">
+            <button onclick="buscador()" class="btn-search">Buscar</button>
+        </div>
+        
         <p class="welcome-subtitle">Descubre los mejores productos seleccionados para ti</p>
     </section>
 
@@ -571,6 +651,57 @@
             .then(res => res.json());
 
         // -------------- declaración de funciones -------------------
+        window.buscador = function buscador() {
+            const contenedor = document.getElementById("contenedor");
+            const searchTerm = document.getElementById("buscador").value.toLowerCase().trim();
+            contenedor.innerHTML = "";
+            
+            if (!searchTerm) {
+                // Si el buscador está vacío, mostrar todos los productos
+                let i = 0;
+                while (i < productos.length) {
+                    mostrarproductos(i);
+                    i++;
+                }
+                return;
+            }
+            
+            let z = 0;
+            let found = false;
+            console.log("productos length:", productos.length);
+            
+            while (z < productos.length) {
+                console.log(z);
+                try {
+                    if (productos[z].producto_nombre && 
+                        productos[z].producto_nombre.toLowerCase().includes(searchTerm)) {
+                        mostrarproductos(z);
+                        found = true;
+                    }
+                } catch(error) {
+                    console.log("error:", error);
+                }
+                z++;
+            }
+            
+            if (!found) {
+                contenedor.innerHTML = `
+                    <div class="no-results">
+                        <p style="font-size: 3rem; margin-bottom: 1rem;">🔍</p>
+                        <p>No se encontró ningún producto con "${document.getElementById("buscador").value}"</p>
+                        <button onclick="resetSearch()" class="btn btn-primary" style="margin-top: 1.5rem;">
+                            Ver todos los productos
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        window.resetSearch = function resetSearch() {
+            document.getElementById("buscador").value = "";
+            buscador();
+        }
+
         window.notificaciones = function notificaciones() {
             const div = document.getElementById("notif-content");
             const panel = document.getElementById("notificaciones");
@@ -620,66 +751,66 @@
             window.location.href = "/data";
         }
 
-function mostrarproductos(i) {
-    if (productos[i].null === false) {
-        const nombre = productos[i].producto_nombre;
-        const precio = productos[i].producto_precio;
-        const descripcion = productos[i].producto_descripcion;
-        const contenedor = document.getElementById("contenedor");
-        
-        let imagenSrc = '';
-        
-        // Manejo más robusto de imágenes
-        if (productos[i].producto_imagen) {
-            if (Array.isArray(productos[i].producto_imagen) && productos[i].producto_imagen.length > 0) {
-                // Si es un array de imágenes
-                if (productos[i].producto_imagen[0].filename) {
-                    imagenSrc = `/${productos[i].producto_imagen[0].filename}`;
-                } else if (typeof productos[i].producto_imagen[0] === 'string') {
-                    imagenSrc = `/${productos[i].producto_imagen[0]}`;
+        function mostrarproductos(i) {
+            if (productos[i].null === false) {
+                const nombre = productos[i].producto_nombre;
+                const precio = productos[i].producto_precio;
+                const descripcion = productos[i].producto_descripcion;
+                const contenedor = document.getElementById("contenedor");
+                
+                let imagenSrc = '';
+                
+                // Manejo más robusto de imágenes
+                if (productos[i].producto_imagen) {
+                    if (Array.isArray(productos[i].producto_imagen) && productos[i].producto_imagen.length > 0) {
+                        // Si es un array de imágenes
+                        if (productos[i].producto_imagen[0].filename) {
+                            imagenSrc = `/${productos[i].producto_imagen[0].filename}`;
+                        } else if (typeof productos[i].producto_imagen[0] === 'string') {
+                            imagenSrc = `/${productos[i].producto_imagen[0]}`;
+                        }
+                    } else if (typeof productos[i].producto_imagen === 'string') {
+                        // Si es una string directa
+                        imagenSrc = productos[i].producto_imagen.startsWith('/') 
+                            ? productos[i].producto_imagen 
+                            : `/${productos[i].producto_imagen}`;
+                    }
                 }
-            } else if (typeof productos[i].producto_imagen === 'string') {
-                // Si es una string directa
-                imagenSrc = productos[i].producto_imagen.startsWith('/') 
-                    ? productos[i].producto_imagen 
-                    : `/${productos[i].producto_imagen}`;
+                
+                // Imagen por defecto si no hay imagen
+                if (!imagenSrc) {
+                    imagenSrc = '/placeholder.png';
+                }
+
+                const card = `
+                    <div class="product-card" style="animation-delay: ${i * 0.05}s">
+                        <a href="/producto/${encodeURIComponent(nombre)}/${i + 1}">
+                            <div class="product-image-container">
+                                <img 
+                                    src="${imagenSrc}" 
+                                    alt="${nombre}" 
+                                    class="product-image"
+                                    loading="lazy"
+                                    onerror="this.onerror=null; this.src='/placeholder.png'; this.style.objectFit='contain';"
+                                >
+                            </div>
+                        </a>
+                        <div class="product-body">
+                            <a href="/producto/${encodeURIComponent(nombre)}/${i + 1}" class="product-name">
+                                ${nombre}
+                            </a>
+                            <div class="product-description">
+                                ${descripcion}
+                            </div>
+                            <div class="product-price">${precio}</div>
+                        </div>
+                        <p class="hidden" id="id">${i + 1}</p>
+                    </div>
+                `;
+                
+                contenedor.innerHTML += card;
             }
         }
-        
-        // Imagen por defecto si no hay imagen
-        if (!imagenSrc) {
-            imagenSrc = '/placeholder.png';
-        }
-
-        const card = `
-            <div class="product-card" style="animation-delay: ${i * 0.05}s">
-                <a href="/producto/${encodeURIComponent(nombre)}/${i + 1}">
-                    <div class="product-image-container">
-                        <img 
-                            src="${imagenSrc}" 
-                            alt="${nombre}" 
-                            class="product-image"
-                            loading="lazy"
-                            onerror="this.onerror=null; this.src='/placeholder.png'; this.style.objectFit='contain';"
-                        >
-                    </div>
-                </a>
-                <div class="product-body">
-                    <a href="/producto/${encodeURIComponent(nombre)}/${i + 1}" class="product-name">
-                        ${nombre}
-                    </a>
-                    <div class="product-description">
-                        ${descripcion}
-                    </div>
-                    <div class="product-price">${precio}</div>
-                </div>
-                <p class="hidden" id="id">${i + 1}</p>
-            </div>
-        `;
-        
-        contenedor.innerHTML += card;
-    }
-}
 
         // ------------ codigo -----------------
         if (nombre === "undefined") {
