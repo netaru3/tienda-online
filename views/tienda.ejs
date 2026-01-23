@@ -330,11 +330,18 @@
             color: var(--text);
             font-size: 1.5rem;
             cursor: pointer;
-            padding: 0.2rem 0.5rem;
-            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
         }
 
         .close-notif:hover {
+            background: var(--primary-light);
             color: var(--accent);
         }
 
@@ -345,6 +352,33 @@
             margin-bottom: 0.8rem;
             border-left: 3px solid var(--accent);
             animation: slideIn 0.3s ease;
+            position: relative;
+            padding-right: 3rem;
+        }
+
+        .close-notification-btn {
+            position: absolute;
+            top: 0.8rem;
+            right: 0.8rem;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+        }
+
+        .close-notification-btn:hover {
+            background: rgba(255, 68, 68, 0.2);
+            color: #FF4444;
+            opacity: 1;
         }
 
         @keyframes slideIn {
@@ -356,6 +390,33 @@
                 opacity: 1;
                 transform: translateX(0);
             }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+                max-height: 100px;
+                margin-bottom: 0.8rem;
+            }
+            to {
+                opacity: 0;
+                transform: translateX(20px);
+                max-height: 0;
+                margin-bottom: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+        }
+
+        .notification-item.removing {
+            animation: slideOut 0.3s ease forwards;
+        }
+
+        .empty-notifications {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-dim);
         }
 
         /* Overlay for mobile */
@@ -647,10 +708,48 @@
         let notificaciones1 = await fetch("/notificaciones-comprador")
             .then(res => res.json());
         
+        // Agregar ID único a cada notificación
+        notificaciones1 = notificaciones1.map((notif, index) => ({
+            ...notif,
+            _uniqueId: `notif-${Date.now()}-${index}`
+        }));
+        
         let productos = await fetch("/verproductos")
             .then(res => res.json());
 
         // -------------- declaración de funciones -------------------
+        window.removeNotification = async function removeNotification(id) { 
+            await fetch("/borrar-notificacion-comprador",{method:"POST",
+                headers:{"Content-Type":"application/json"},
+                    body: JSON.stringify({id:id})
+                })
+            const notificationElement = document.querySelector(`[data-notification-id="${id}"]`);
+            if (notificationElement) {
+                // Agregar animación de salida
+                notificationElement.classList.add('removing');
+                
+                // Después de la animación, remover el elemento del DOM
+                setTimeout(() => {
+                    notificationElement.remove();
+                    
+                    // Eliminar del array
+                    notificaciones1 = notificaciones1.filter(n => n._id !==id);
+                    
+                    // Si no quedan notificaciones para este usuario, mostrar estado vacío
+                    const userNotifications = notificaciones1.filter(n => n.usuario === nombre);
+                    if (userNotifications.length === 0) {
+                        const div = document.getElementById("notif-content");
+                        div.innerHTML = `
+                            <div class="empty-notifications">
+                                <p style="font-size: 2rem; margin-bottom: 0.5rem;">🔔</p>
+                                <p>No tienes notificaciones</p>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            }
+        }
+
         window.buscador = function buscador() {
             const contenedor = document.getElementById("contenedor");
             const searchTerm = document.getElementById("buscador").value.toLowerCase().trim();
@@ -702,7 +801,8 @@
             buscador();
         }
 
-        window.notificaciones = function notificaciones() {
+        window.notificaciones = async function notificaciones() {
+           
             const div = document.getElementById("notif-content");
             const panel = document.getElementById("notificaciones");
             const overlay = document.getElementById("overlay");
@@ -712,14 +812,21 @@
                 const userNotifications = notificaciones1.filter(n => n.usuario === nombre);
                 
                 if (userNotifications.length === 0) {
-                    div.innerHTML = '<p style="color: var(--text-dim); text-align: center;">No tienes notificaciones</p>';
+                    div.innerHTML = `
+                        <div class="empty-notifications">
+                            <p style="font-size: 2rem; margin-bottom: 0.5rem;">🔔</p>
+                            <p>No tienes notificaciones</p>
+                        </div>
+                    `;
                 } else {
                     userNotifications.forEach(notificacion => {
-                        div.innerHTML += `
-                            <div class="notification-item">
+                        if(notificacion.show!==false){   div.innerHTML += `
+                            <div class="notification-item" data-notification-id="${notificacion._id}">
                                 <p>${notificacion.notificacion}</p>
+                                <button class="close-notification-btn" onclick="removeNotification('${notificacion._id}')" title="Eliminar notificación">×</button>
                             </div>
-                        `;
+                        `;}
+                     
                     });
                 }
                 panel.classList.add('active');
