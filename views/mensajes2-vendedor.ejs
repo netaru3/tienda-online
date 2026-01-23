@@ -391,6 +391,12 @@
         }
 
         window.enviarmensaje = async function enviarmensaje(usuario) {
+            await fetch("/notificaciones-vendedor",{method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({usuario:usuario,
+                    notificacion: "el vendedor te ha enviado un mensaje"
+                })
+            })
             console.log("se ejecutó la función del onclick");
             const messageInput = document.getElementById("mensaje");
             const mensaje = messageInput.value.trim();
