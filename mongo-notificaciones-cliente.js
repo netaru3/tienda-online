@@ -8,7 +8,10 @@ catch(error){console.log("error:",error)}
 let esquema=new mongoose.Schema({
  usuario: String,
  notificacion: String,
- producto: String
+ producto:{type:String,
+    required: false
+ },
+ show: Boolean
 });
 
 export let log_notificaciones_comprador= mongoose.model("notificaciones-cliente-tienda-online",esquema)
