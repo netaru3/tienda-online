@@ -438,7 +438,7 @@
                                     clearInterval(id);
                                     document.getElementById("mensaje").value = "";
                                 }
-                            }, 500);
+                            }, 1);
                         } catch {
                             setTimeout(() => {
                                 if (mensajesuwu[mensajesuwu.length - 1].mensaje !== document.getElementById("mensaje").value) {
@@ -447,9 +447,9 @@
                                     mostrarmensajes(mensajesuwu, usuario);
                                     document.getElementById("mensaje").value = "";
                                 }
-                            }, 500);
+                            }, 1);
                         }
-                    }, 600);
+                    }, 1);
                 }
             }
 
@@ -526,6 +526,13 @@
         }
 
         window.enviarmensaje = async function enviarmensaje(usuario) {
+            await fetch("/notificaciones-cliente",{method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({usuario: usuario,
+                    notificacion: "el vendedor te ha enviado un mensaje"
+                })
+            })
+
             await fetch("/mensajes", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
