@@ -373,7 +373,7 @@
         let mensajesuwu = [];
         let i = 0;
         let a = 0;
-
+        let estado_mensajes= false
         setInterval(async() => {
             res = await fetch("/chats").then(res => res.json());
         }, 1000);
@@ -402,7 +402,7 @@
             boton.id = `${usuario}`;
             boton.className = "chat-item";
 
-            boton.onclick = async function() {
+            boton.onclick = async function() { if(estado_mensajes===false){return}
                 // Update UI
                 document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('active'));
                 boton.classList.add('active');
@@ -438,7 +438,7 @@
                                     clearInterval(id);
                                     document.getElementById("mensaje").value = "";
                                 }
-                            }, 1);
+                            }, 10);
                         } catch {
                             setTimeout(() => {
                                 if (mensajesuwu[mensajesuwu.length - 1].mensaje !== document.getElementById("mensaje").value) {
@@ -447,9 +447,9 @@
                                     mostrarmensajes(mensajesuwu, usuario);
                                     document.getElementById("mensaje").value = "";
                                 }
-                            }, 1);
+                            }, 10);
                         }
-                    }, 1);
+                    }, 10);
                 }
             }
 
@@ -563,6 +563,7 @@
             mensajesuwu = mensajes;
             console.log("mensajesuwu es:", mensajesuwu);
             socket.off("mensajes", socketfunction);
+            estado_mensajes=true
         }
         socket.on("mensajes", socketfunction);
     </script>
