@@ -357,8 +357,11 @@ app.post("/webhook", async function(req, res) {
     
     // MercadoPago envía diferentes tipos de notificaciones
         try {
+                const paymentId;
             // Aquí procesás la notificación del pago
-            const paymentId = data.id;
+                if(data.id){
+             paymentId = data.id;}
+                else{paymentId=req.body.resource}
             const paymentinfo= await payment.get({id:paymentId})
             
             // Opcional: Obtener más detalles del pago
