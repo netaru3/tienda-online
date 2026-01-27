@@ -403,7 +403,7 @@ app.get("/tienda/:nombre",function(req,res){
 })
 
 app.get("/producto/:producto/:id",function(req,res){ req.session.producto_id= req.params.id
-req.session.producto= req.pararms.producto
+req.session.producto= req.params.producto
     console.log(req.session.usuario)
     if(req.session.usuario==="admin"){console.log(req.session.usuario);
      res.render("producto-admin",{nombre: req.params.producto, id: req.params.id});return
