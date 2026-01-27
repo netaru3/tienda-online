@@ -361,7 +361,7 @@ app.post("/webhook", async function(req, res) {
             // Aquí procesás la notificación del pago
                 if(data){
              paymentId = data.id;}
-             else if(resource){paymentId=req.body.resource.split("/").pop()}
+             else if(req.body.resource){paymentId=req.body.resource.split("/").pop()}
             const paymentinfo= await payment.get({id:paymentId})
             
             // Opcional: Obtener más detalles del pago
