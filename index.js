@@ -353,10 +353,13 @@ app.get("/comprar",async function(req,res){console.log("comprar")
 app.post("/webhook", async function(req, res) {
     console.log("Webhook recibido:", req.body);
     
-    const { type, data } = req.body;
+    const { type, data,topic } = req.body;
     
     // MercadoPago envía diferentes tipos de notificaciones
-        try {
+        try {  if (topic === 'merchant_order' || type === 'merchant_order') {
+            console.log("ℹ️ Webhook ignorado - merchant_order");
+            return res.sendStatus(200);
+        }
                 let paymentId;
             // Aquí procesás la notificación del pago
                 if(data){
