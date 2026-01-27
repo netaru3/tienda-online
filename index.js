@@ -370,8 +370,8 @@ app.post("/webhook", async function(req, res) {
             // Opcional: Obtener más detalles del pago
             // const payment = await Payment.get({ id: paymentId });
              if(paymentInfo.status==="approved"){  try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
-        usuario: paymentInfo.metadata.usuario,
-        notificacion: `el usuario ${paymentInfo.metadata.usuario} ha comprado el producto ${paymentInfo.metadata.producto}`,
+        usuario: paymentInfo.external_reference,
+        notificacion: `el usuario ${paymentInfo.external_reference} ha comprado el producto ${paymentInfo.metadata.producto}`,
        producto: req.body.producto
 
     })}catch(error){console.log("no se pudo crear la notificación",error)}
