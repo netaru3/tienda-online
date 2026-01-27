@@ -328,7 +328,7 @@ app.get("/comprar",async function(req,res){console.log("comprar")
                 quantity:1,
                 currency_id:unidad
             }],  external_reference:req.session.usuario,
-            metadata:{id: req.session.producto_id},
+            metadata:{id: req.session.producto_id,producto: req.session.producto},
              payer: {  // ← ESTO ES LO QUE FALTA
                 email: "test_user_123456@testuser.com"  // Email de prueba
             },
@@ -370,8 +370,8 @@ app.post("/webhook", async function(req, res) {
             // Opcional: Obtener más detalles del pago
             // const payment = await Payment.get({ id: paymentId });
              if(paymentinfo.status==="approved"){  try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
-        usuario: req.session.usuario,
-        notificacion: `el usuario ${req.session.usuario} ha comprado el producto ${req.body.producto}`,
+        usuario: paymentInfo.metadata.usuario,
+        notificacion: `el usuario ${paymentInfo.metadata.usuario} ha comprado el producto ${paymentInfo.metadata.producto}`,
        producto: req.body.producto
 
     })}catch(error){console.log("no se pudo crear la notificación",error)}
@@ -403,6 +403,7 @@ app.get("/tienda/:nombre",function(req,res){
 })
 
 app.get("/producto/:producto/:id",function(req,res){ req.session.producto_id= req.params.id
+req.session.producto= req.pararms.producto
     console.log(req.session.usuario)
     if(req.session.usuario==="admin"){console.log(req.session.usuario);
      res.render("producto-admin",{nombre: req.params.producto, id: req.params.id});return
