@@ -365,11 +365,11 @@ app.post("/webhook", async function(req, res) {
                 if(data){
              paymentId = data.id;}
              else if(req.body.resource){paymentId=req.body.resource.split("/").pop()}
-            const paymentinfo= await payment.get({id:paymentId})
+            const paymentInfo= await payment.get({id:paymentId})
             
             // Opcional: Obtener más detalles del pago
             // const payment = await Payment.get({ id: paymentId });
-             if(paymentinfo.status==="approved"){  try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
+             if(paymentInfo.status==="approved"){  try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
         usuario: paymentInfo.metadata.usuario,
         notificacion: `el usuario ${paymentInfo.metadata.usuario} ha comprado el producto ${paymentInfo.metadata.producto}`,
        producto: req.body.producto
