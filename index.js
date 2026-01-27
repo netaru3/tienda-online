@@ -359,7 +359,7 @@ app.post("/webhook", async function(req, res) {
         try {
                 let paymentId;
             // Aquí procesás la notificación del pago
-                if(data.id){
+                if(data){
              paymentId = data.id;}
                 else{paymentId=req.body.resource}
             const paymentinfo= await payment.get({id:paymentId})
