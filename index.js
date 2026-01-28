@@ -16,6 +16,7 @@ import { log_notificaciones_vendedor } from './mongo-notificaciones-vendedor.js'
 import { log_notificaciones_comprador } from './mongo-notificaciones-cliente.js'
 import bcryptjs from 'bcryptjs'
 import {MercadoPagoConfig,Preference,Payment} from 'mercadopago'
+import { log_carrito } from './mongo-carrito.js'
 dotenv.config()
 
 //-----------------------------declaraciones--------------------------
@@ -307,6 +308,11 @@ let notificacion= await log_notificaciones_vendedor.findByIdAndUpdate({_id:req.b
 res.send("ok")
 })
 
+app.post("/borrar-notificacion-comprador",async function(req,res){
+    let notificacion= await log_notificaciones_comprador.findByIdAndUpdate({_id:req.body.id},{show:false})
+res.send("ok")
+})
+
 app.get("/usuarios",async function(req,res){
     let allusers=[]
     let usuarios= await log.find({})
@@ -328,7 +334,9 @@ app.get("/comprar",async function(req,res){console.log("comprar")
                 quantity:1,
                 currency_id:unidad
             }],  external_reference:req.session.usuario,
-            metadata:{id: req.session.producto_id,producto: req.session.producto},
+            metadata:{id: req.session.producto_id,
+                prodcuto: req.session.producto
+            },
              payer: {  // ← ESTO ES LO QUE FALTA
                 email: "test_user_123456@testuser.com"  // Email de prueba
             },
@@ -350,34 +358,84 @@ app.get("/comprar",async function(req,res){console.log("comprar")
  
 })
 
+app.get("/comprar-carrito",async function(req,res){
+    let carrito= await log_carrito.find({usuario: req.session.usuario})
+    console.log(carrito)
+    const response = await fetch(
+  `https://api.exchangeratesapi.io/v1/latest?access_key=${process.env.KEY}&currencies=USD,UYU"`
+);
+
+const data = await response.json();
+
+const dolarAuyu = data.rates.UYU/data.rates.USD;
+
+console.log("dolares a pesos:",dolarAuyu);
+
+    let preciototal=0
+    for(let producto of carrito){let producto_precio= Number(producto.producto_precio.match(/\d+/))
+       if(producto.producto_precio.includes("US$")){producto_precio= producto_precio*dolarAuyu}
+        preciototal+=producto_precio }
+
+        try{
+        const body= {
+            items:[{title: "carrito",
+                unit_price: preciototal,
+                quantity:1,
+                currency_id:"UYU"
+            }],  external_reference:req.session.usuario,
+             payer: {  // ← ESTO ES LO QUE FALTA
+                email: "test_user_123456@testuser.com"  // Email de prueba
+            },
+            back_urls:{
+                success: `https://tienda-online-5jo4.onrender.com/tienda/${req.session.usuario}`,
+                failure: "http://localhost:3000/pago-fallido",
+                pending: "http://localhost:3000/pago-pendiente"
+            },
+            notification_url: "https://tienda-online-5jo4.onrender.com/webhook"
+        };
+        const response= await preference.create({body});    
+        console.log("init_point:",response.init_point)
+        res.json({init_point: response.init_point})
+    }catch(error){console.log("error:", error)}
+
+})
+
+
+app.post("/notificaciones-cliente",async function(req,res){
+    await log_notificaciones_comprador.create({usuario: req.session.usuario,
+        notificacion: req.body.notificacion})
+        res.send("ok")
+})
+
 app.post("/webhook", async function(req, res) {
     console.log("Webhook recibido:", req.body);
-    
+    console.log("producto real:",req.body.producto[0].producto_nombre)
     const { type, data,topic } = req.body;
     
     // MercadoPago envía diferentes tipos de notificaciones
-        try {  if (topic === 'merchant_order' || type === 'merchant_order') {
-            console.log("ℹ️ Webhook ignorado - merchant_order");
-            return res.sendStatus(200);
-        }
-                let paymentId;
+        try {
+        
+            if (topic === 'merchant_order' || type === 'merchant_order') {
+    console.log("ℹ️ Webhook ignorado - merchant_order");
+    return res.sendStatus(200);
+}       
+              let paymentId;
             // Aquí procesás la notificación del pago
-                if(data){
+                if(data && data.id){
              paymentId = data.id;}
             const paymentInfo= await payment.get({id:paymentId})
-            
             // Opcional: Obtener más detalles del pago
             // const payment = await Payment.get({ id: paymentId });
              if(paymentInfo.status==="approved"){  try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
         usuario: paymentInfo.external_reference,
         notificacion: `el usuario ${paymentInfo.external_reference} ha comprado el producto ${paymentInfo.metadata.producto}`,
-       producto: req.body.producto
+       producto: paymentInfo.metadata.producto
 
     })}catch(error){console.log("no se pudo crear la notificación",error)}
 
-    
+
                 console.log("pago aprobado")
-                let producto= await log_products.find({producto_id: paymentInfo.metadata.id})
+                let producto= await log_products.find({producto_id: paymentinfo.metadata.id})
     
     if(Number(producto[0].producto_stock)>0){let nuevoproducto= await log_products.findOneAndUpdate({producto_id: producto[0].producto_id},{producto_stock: `${Number(producto[0].producto_stock)-1}`})
    }}
@@ -392,6 +450,32 @@ app.post("/webhook", async function(req, res) {
             
        res.sendStatus(200)  } 
     )
+
+    app.post("/carrito",async function(req,res){
+        if(req.session.producto_id!==req.body.id){res.send("id del cliente distinta del servidor"); return}
+        let producto= await log_products.find({producto_id: req.body.id})
+        await log_carrito.create({usuario: req.session.usuario,
+            producto_nombre: producto[0].producto_nombre,
+            producto_precio: producto[0].producto_precio,
+            producto_id: Number(req.body.id),
+            producto_imagen: producto[0].producto_imagen
+        })
+    })
+
+    app.get("/ver-carrito",async function(req,res){
+     let carrito=   await log_carrito.find({usuario: req.session.usuario})
+     res.json(carrito)
+    })
+
+    app.get("/tienda/carrito",function(req,res){
+        if(req.session.usuario!==undefined){ res.render("carrito",{usuario: req.session.usuario})}
+        else{res.send("inicie sesión para usar el carrito")}
+    })
+
+    app.post("/quitar-del-carrito",async function(req,res){
+        await log_carrito.findOneAndDelete({producto_id: Number(req.body.id)})
+        res.send("ok")
+    })
 //----------------rutas dinámicas--------------------
 
 app.get("/tienda/:nombre",function(req,res){
@@ -402,7 +486,7 @@ app.get("/tienda/:nombre",function(req,res){
 })
 
 app.get("/producto/:producto/:id",function(req,res){ req.session.producto_id= req.params.id
-req.session.producto= req.params.producto
+    req.session.producto= req.params.producto
     console.log(req.session.usuario)
     if(req.session.usuario==="admin"){console.log(req.session.usuario);
      res.render("producto-admin",{nombre: req.params.producto, id: req.params.id});return
