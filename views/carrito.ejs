@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>carrito</title>
+</head>
+<body>
+   
+    <h1>hola <%= usuario %></h1>
+    <h2>carrito:</h2>
+    <div id="carrito"></div>
+    <br>
+    <button onclick="pagarcarrito()">pagar</button>
+    <script type="module">
+        //---------------declaraciones-----------------
+        let carrito= await fetch("/ver-carrito").then(function(res){return res}).then(function(res){return res.json()})
+        let divcarrito= document.getElementById("carrito")
+        console.log(carrito)
+        let precio=0
+
+        //----------declaración de funciones-------------
+        window.pagarcarrito= async function pagarcarrito(){
+            await fetch("/comprar-carrito").then(function(res){return res.json()}).then(function(res){window.location.href=res.init_point})
+        }
+
+        window.quitarproducto= async function quitarproducto(id){
+         
+            console.log("id:",id)
+            await fetch("/quitar-del-carrito",{method:"POST",headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({id:id})})
+
+           let divid= document.getElementById(`${id}`)
+        divid.innerHTML=""
+        }
+       
+        //-----------------codigo----------------------
+        for(let producto of carrito){ 
+            precio+= Number(producto.producto_precio.match(/\d+/)[0])
+            divcarrito.innerHTML+=`<div id="${producto.producto_id}"><a href="/producto/${producto.producto_nombre}/${producto.producto_id}"><h4>${producto.producto_nombre}</h4>
+    <img src='/${producto.producto_imagen[0]}' alt="" width="300px">
+    <h4>precio: ${producto.producto_precio}</h4></a>
+     <button onclick="quitarproducto(${producto.producto_id})">quitar del carrito</button> </div>
+            `
+            }
+
+            console.log(precio)
+       
+    </script>
+</body>
+</html>
