@@ -466,7 +466,7 @@ app.post("/webhook", async function(req, res) {
 
 
                 console.log("pago aprobado")
-                let producto= await log_products.find({producto_id: paymentinfo.metadata.id})
+                let producto= await log_products.find({producto_id: paymentInfo.metadata.id})
                 console.log("producto del webhook:",producto)
         
     if(Number(producto.producto_stock)>0){let nuevoproducto= await log_products.findOneAndUpdate({producto_id: producto.producto_id},{producto_stock: `${Number(producto.producto_stock)-1}`})
