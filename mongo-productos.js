@@ -11,7 +11,9 @@ let esquema=new mongoose.Schema({
  producto_imagen: Array,
  producto_precio: String,
  producto_stock: String,
+ producto_envio: String,
  producto_id: Number,
+ local_ubicacion: String,
  null: Boolean
 });
 
