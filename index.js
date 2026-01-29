@@ -17,10 +17,17 @@ import { log_notificaciones_comprador } from './mongo-notificaciones-cliente.js'
 import bcryptjs from 'bcryptjs'
 import {MercadoPagoConfig,Preference,Payment} from 'mercadopago'
 import { log_carrito } from './mongo-carrito.js'
+import {log_compras} from './mongo-compras.js'
 dotenv.config()
 
 //-----------------------------declaraciones--------------------------
-        
+           const response = await fetch(
+  `https://api.exchangeratesapi.io/v1/latest?access_key=${process.env.KEY}&currencies=USD,UYU"`
+);
+
+const data = await response.json();
+
+const dolarAuyu = data.rates.UYU/data.rates.USD;
 //---------------------------- servidores-----------------------------
 let app= express()
 const server= createServer(app)
@@ -147,7 +154,9 @@ app.post("/products",upload.array("imagen",6),async function(req,res){
         producto_imagen: req.files,
         producto_precio: req.body.precio,
         producto_stock: req.body.stock,
+        producto_envio: req.body.envio,
         producto_id: id,
+        local_ubicacion: req.body.local,
         null: false
     })
 
@@ -195,6 +204,12 @@ app.post("/editarimagen",upload.array("editarimagen",6),async function(req,res){
 app.post("/editar-stock",async function(req,res){
     let stock= await log_products.findOneAndUpdate({producto_id: req.body.producto},{producto_stock: req.body.stock})
     res.send("ok")
+})
+
+app.post("/editar-ubicacion",async function(req,res){
+    await log_products.findOneAndUpdate({producto_id: req.body.id},{local_ubicacion: req.body.ubicacion})
+    res.send("ok")
+
 })
 
 app.post("/borrarproducto",async function(req,res){ console.log("producto borrado")
@@ -320,12 +335,25 @@ app.get("/usuarios",async function(req,res){
     res.json(allusers)
 })
 
-app.get("/comprar",async function(req,res){console.log("comprar")
+app.get("/compra",function(req,res){
+    res.render("compra")
+})
+app.post("/comprar",async function(req,res){console.log("comprar")
     let producto= await log_products.find({producto_id: req.session.producto_id})
     console.log("producto:",producto)
     let precio1= Number(producto[0].producto_precio.match(/\d+/))
     let unidad=producto[0].producto_precio.match(/[^\d]+/g).toString()
     console.log("precio1:",precio1)
+
+    let precioenvio= Number(producto[0].producto_envio.match(/\d+/))
+    let unidadenvio=producto[0].producto_precio.match(/[^\d]+/g).toString()
+
+    if(req.body.envio==="si"){
+        if(unidad.toUpperCase()==="US$" && unidadenvio==="$"){precioenvio= precioenvio/dolarAuyu}
+        else if(unidad==="$" && unidadenvio.toUpperCase()==="US$"){precioenvio= precioenvio*dolarAuyu}
+
+        precio1+= precioenvio
+    }
     async function preferencia(unidad){if(Number(producto[0].producto_stock)>0){
     try{
         const body= {
@@ -335,7 +363,8 @@ app.get("/comprar",async function(req,res){console.log("comprar")
                 currency_id:unidad
             }],  external_reference:req.session.usuario,
             metadata:{id: req.session.producto_id,
-                prodcuto: req.session.producto
+                producto: req.session.producto,
+                direccion: req.body.ubicacion
             },
              payer: {  // ← ESTO ES LO QUE FALTA
                 email: "test_user_123456@testuser.com"  // Email de prueba
@@ -361,13 +390,7 @@ app.get("/comprar",async function(req,res){console.log("comprar")
 app.get("/comprar-carrito",async function(req,res){
     let carrito= await log_carrito.find({usuario: req.session.usuario})
     console.log(carrito)
-    const response = await fetch(
-  `https://api.exchangeratesapi.io/v1/latest?access_key=${process.env.KEY}&currencies=USD,UYU"`
-);
-
-const data = await response.json();
-
-const dolarAuyu = data.rates.UYU/data.rates.USD;
+ 
 
 console.log("dolares a pesos:",dolarAuyu);
 
@@ -409,11 +432,10 @@ app.post("/notificaciones-cliente",async function(req,res){
 
 app.post("/webhook", async function(req, res) {
     console.log("Webhook recibido:", req.body);
-    console.log("producto real:",req.body.producto[0].producto_nombre)
     const { type, data,topic } = req.body;
     
     // MercadoPago envía diferentes tipos de notificaciones
-        try {
+        try { 
         
             if (topic === 'merchant_order' || type === 'merchant_order') {
     console.log("ℹ️ Webhook ignorado - merchant_order");
@@ -426,12 +448,20 @@ app.post("/webhook", async function(req, res) {
             const paymentInfo= await payment.get({id:paymentId})
             // Opcional: Obtener más detalles del pago
             // const payment = await Payment.get({ id: paymentId });
-             if(paymentInfo.status==="approved"){  try{ console.log("creando notificacion"); await log_notificaciones_vendedor.create({
+             if(paymentInfo.status==="approved"){
+                 try{ let producto= await log_products.find({producto_id:paymentInfo.metadata.id})[0]
+                    console.log("creando notificacion"); await log_notificaciones_vendedor.create({
         usuario: paymentInfo.external_reference,
         notificacion: `el usuario ${paymentInfo.external_reference} ha comprado el producto ${paymentInfo.metadata.producto}`,
        producto: paymentInfo.metadata.producto
 
-    })}catch(error){console.log("no se pudo crear la notificación",error)}
+    });  await log_compras.create({producto_nombre: paymentInfo.metadata.producto,
+        producto_id:paymentInfo.metadata.id, producto_precio: producto.producto_precio, producto_envio: producto.producto_envio,
+        local_ubicacion: paymentInfo.metadata.direccion
+        
+    }); console.log("se creo el log de la compra")
+
+}catch(error){console.log("no se pudo crear la notificación",error)}
 
 
                 console.log("pago aprobado")
@@ -468,7 +498,7 @@ app.post("/webhook", async function(req, res) {
     })
 
     app.get("/tienda/carrito",function(req,res){
-        if(req.session.usuario!==undefined){ res.render("carrito",{usuario: req.session.usuario})}
+        if(req.session.usuario!==undefined){ res.render("carrito",{usuario: req.session.usuario,KEY:process.env.KEY})}
         else{res.send("inicie sesión para usar el carrito")}
     })
 
