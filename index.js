@@ -449,7 +449,7 @@ app.post("/webhook", async function(req, res) {
             // Opcional: Obtener más detalles del pago
             // const payment = await Payment.get({ id: paymentId });
              if(paymentInfo.status==="approved"){
-                 try{ let producto= await log_products.find({producto_id:paymentInfo.metadata.id})[0]
+                 try{ let producto= await log_products.find({producto_id:paymentInfo.metadata.id})
                     console.log("creando notificacion"); await log_notificaciones_vendedor.create({
         usuario: paymentInfo.external_reference,
         notificacion: `el usuario ${paymentInfo.external_reference} ha comprado el producto ${paymentInfo.metadata.producto}`,
