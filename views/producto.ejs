@@ -1,10 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4093661401182951"
-     crossorigin="anonymous"></script>
-    <meta name="google-adsense-account" content="ca-pub-4093661401182951">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Producto - Detalles</title>
@@ -489,9 +485,9 @@
                 <button onclick="enviarcomentarios()" class="btn btn-primary">Enviar</button>
             </div>
             
-            <div id="comentarios"></div>
+            <div id="comentarios"></div> 
         </div>
-    </div>
+    </div> 
 
     <script src="/socket.io/socket.io.js"></script>
     <script type="module">
@@ -506,6 +502,14 @@
         let productImages = [];
 
         // --------------- declaración de funciones ------------------
+
+        window.carrito= async function carrito(){
+            await fetch("/carrito",{method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body: JSON.stringify({usuario:usuario, id:id,
+                })
+            })
+        }
         function mostrarcomentarios(comentarios) {
             console.log(respuestas);
             const comentariodiv = document.getElementById("comentarios");
@@ -560,6 +564,7 @@
         }
 
         window.comprobar = async function comprobar() {
+            
             await fetch("/comprobar-usuario", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -574,10 +579,10 @@
                 } else if (res === "ok" && Number(document.getElementById("stock").textContent) > 0) {
                     let stock = Number(document.getElementById("stock").textContent);
                     document.getElementById("stock").textContent = stock - 1;
+
+                    window.location.href="/compra"
                     
-                    await fetch("/comprar")
-                        .then(data => data.json())
-                        .then(data => window.location.href = data.init_point);
+                   
                 }
             });
         }
@@ -614,6 +619,11 @@
             const precio = producto.producto_precio;
             const descripcion = producto.producto_descripcion;
             const stock = producto.producto_stock;
+            let envio= producto.producto_envio
+            if(envio===undefined){envio="gratis"}
+            let ubicacion= producto.local_ubicacion
+            if(ubicacion===undefined){ubicacion= "no especificada"}
+            
 
             // Procesar todas las imágenes
             productImages = [];
@@ -674,7 +684,9 @@
                 <h1 class="product-title">${nombre}</h1>
                 
                 <div class="product-price-section">
-                    <div class="product-price">${precio}</div>
+                    <div class="product-price">${precio}</div> <br>
+                    <br>
+                    <div class="">costo de envío: ${envio}</div>
                     <div class="stock-badge ${stockClass}" id="stock-badge">
                         ${stockText}
                     </div>
@@ -682,11 +694,17 @@
                 <p hidden id="stock">${stock}</p>
                 
                 <div class="product-description">${descripcion}</div>
+
+                 <div class="product-description">📍ubicacion del local: ${ubicacion}</div>
                 
                 <div class="action-buttons">
                     <button onclick="comprobar()" class="btn btn-primary">
                         🛒 Comprar Ahora
                     </button>
+
+                     <button onclick="carrito()" class="btn btn-primary">
+                        agregar al carrito
+                    </button> 
                     <button onclick="window.location.href='/mensajeria/<%= usuario %>'" class="btn btn-secondary">
                         💬 Contactar Vendedor
                     </button>
