@@ -104,6 +104,19 @@
         br {
             display: none;
         }
+
+        
+        .container__send-button, .container__register-button{
+            margin-bottom: 18px;
+        }
+    
+        .container__divisor{
+            text-align: center;
+            justify-content: center;
+            margin: auto;
+            display: flex;
+            margin-bottom: 18px;
+        }
     </style>
 </head>
 <body>
@@ -118,10 +131,11 @@
     <input type="password" placeholder="Ingrese su contraseña" name="contraseña" 
     id="contraseña"> 
     <br>
-<input type="button" value="Enviar" onclick="enviar()">
+    <input class="container__send-button" type="button" value="Enviar" onclick="enviar()">
     </form>
-    <input type="button" onclick="redireccionaregistro()" value="registrarse">
-    <input type="button"  onclick="redireccionar()" value="entrar como visitante">
+        <div class="container__divisor">o</div>
+    <input class="container__register-button" type="button" onclick="redireccionaregistro()" value="Registrarse">
+    <input type="button"  onclick="redireccionar()" value="Entrar como visitante">
     
 
          <script src="/socket.io/socket.io.js"></script>
