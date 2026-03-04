@@ -203,4 +203,4 @@ Cada producto puede tener hasta 6 imágenes con navegación por flechas y miniat
 
 ## 📄 Licencia
 
-Este proyecto está bajo la licencia MIT. Puedes usarlo, modificarlo y distribuirlo libremente.
+Este proyecto no se puede vender sin mi consentimiento
