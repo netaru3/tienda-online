@@ -133,28 +133,29 @@
         br {
             display: none;
         }
+        .container__username, .container__password, .container__send-button, .container__account-button{
+            margin-bottom: 18px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-          <h1>Registrarse</h1>
-    <h2>Cree una cuenta</h2>
-    <input type="text" placeholder="Ingrese su usuario" name="usuario" id="usuario">
+        <h1>Registrarse</h1>
+        <h2>Cree una cuenta</h2>
+        <input class="containerusername" type="text" placeholder="Ingrese su usuario" name="usuario" id="usuario">
 
-    <br>
+        <br>
 
-    <input type="password" placeholder="Ingrese su contraseña" name="contraseña" id="contraseña">
-    <br>
-    <input type="button" value="Enviar" onclick="
-resultadofetch()">
+        <input class="container__password" type="password" placeholder="Ingrese su contraseña" name="contraseña" id="contraseña">
+        <br>
+        <input class="container__send-button" type="button" value="Enviar" onclick="resultadofetch()">
 
-    <button onclick="redireccionar()">Ya tengo una cuenta</button>
+        <button class="container__account-button" onclick="redireccionar()">Ya tengo una cuenta</button>
 
-    <button onclick="redireccionartienda()">Entrar como visitante</button>
+        <button class="container__visitant-button" onclick="redireccionartienda()">Entrar como visitante</button>
 
-       
+
     </div>
-
       <script>
         window.addEventListener("pageshow", function (event) {
     if (event.persisted) {
