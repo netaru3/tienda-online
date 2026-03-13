@@ -743,6 +743,7 @@
             if (producto.producto_imagen) {
                 if (Array.isArray(producto.producto_imagen)) {
                     producto.producto_imagen.forEach(img => {
+                        if(!img.filename){productImages.push(img)}
                         if (img.filename) {
                             productImages.push(`/${img.filename}`);
                         } else if (typeof img === 'string') {
@@ -759,6 +760,7 @@
                 productImages.push('/placeholder.png');
             }
 
+            console.log("imagen",productImages)
             // Crear galería de imágenes
             let galleryHTML = `
                 <div class="product-images-container">
