@@ -497,9 +497,11 @@
         let i = 0;
         let respuestas = [];
         let id = "<%= id %>";
+        console.log("id:",id);
         let usuario = "<%= usuario %>";
         let socket = io();
         let productos = await fetch("/verproductos").then(res => res.json());
+        console.log("productos,",productos)
         let currentImageIndex = 0;
         let productImages = [];
         let hay_oferta_envio= false
@@ -517,11 +519,12 @@
 
         window.carrito= async function carrito(stock){
             if(stock==0){alert("no hay stock"); return}
-            await fetch("/carrito",{method:"POST",
+           let respuesta= await fetch("/carrito",{method:"POST",
                 headers:{"Content-Type":"application/json"},
                 body: JSON.stringify({usuario:usuario, id:id,
                 })
-            })
+            }).then(function(res){return res}).then(function(res){return res.text()})
+            console.log("respuesta:",respuesta)
         }
         function mostrarcomentarios(comentarios) {
             console.log(respuestas);
@@ -651,11 +654,12 @@
 
             // Procesar todas las imágenes
             productImages = [];
-            
+            console.log("producto imagen:",producto.producto_imagen)
             if (producto.producto_imagen) {
-                if (Array.isArray(producto.producto_imagen)) {
+                if (Array.isArray(producto.producto_imagen)) { console.log("hola?")
                     // Si es un array de objetos con filename
                     producto.producto_imagen.forEach(img => {
+                        if(!img.filename && img.startsWith("/")){productImages.push(img)}
                         if (img.filename) {
                             productImages.push(`/${img.filename}`);
                         } else if (typeof img === 'string') {
@@ -667,7 +671,7 @@
                     productImages.push(producto.producto_imagen.startsWith('/') ? producto.producto_imagen : `/${producto.producto_imagen}`);
                 }
             }
-
+            console.log("productosimagenes:",productImages)
             // Si no hay imágenes, usar placeholder
             if (productImages.length === 0) {
                 productImages.push('/placeholder.png');
@@ -686,9 +690,9 @@
             `;
 
             // Agregar thumbnails si hay más de una imagen
-            if (productImages.length > 1) {
+            if (productImages.length > 1) { 
                 galleryHTML += '<div class="thumbnails-container">';
-                productImages.forEach((imgSrc, index) => {
+                productImages.forEach((imgSrc, index) => { console.log("imgSrc:",imgSrc)
                     galleryHTML += `
                         <div class="thumbnail ${index === 0 ? 'active' : ''}" onclick="changeImage(${index})">
                             <img src="${imgSrc}" alt="${nombre} ${index + 1}">
