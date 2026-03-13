@@ -24,17 +24,33 @@ import  {log_ofertas2x1}  from './base_de_datos_mongo/mongo-ofertas.js'
 import { log_ofertas_envio } from './base_de_datos_mongo/mongo-ofertas_envio.js'
 import { log_reembolsos } from './base_de_datos_mongo/mongo-reembolsos.js'
 import { log_numero_vendedor } from './base_de_datos_mongo/mongo-numero-whatssap.js'
+import ImageKit from 'imagekit'
+import fs from 'fs'
 
 dotenv.config()
 
 //-----------------------------declaraciones--------------------------
-           const response = await fetch("https://open.er-api.com/v6/latest/USD")
+let dolarAuyu=0;
+try{
+    const response = await fetch("https://open.er-api.com/v6/latest/USD")
 ;
 
 const data = await response.json();
 
-const dolarAuyu =data.rates.UYU;
+ dolarAuyu =data.rates.UYU;
+}catch(error){console.log("errror:",error)
+  dolarAuyu=40
+}           
+
 console.log(dolarAuyu)
+
+const imagekit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC,
+  privateKey: process.env.IMAGEKIT_PRIVATE,
+  urlEndpoint: process.env.IMAGEKIT_URL
+});
+
+
 
 //---------------------------- servidores-----------------------------
 let app= express()
@@ -57,7 +73,7 @@ const storage = multer.diskStorage({ destination: function(req,file,cb){cb(null,
     }
  });
 
- const upload= multer({storage})
+ const upload= multer({storage}) //probar borrar multer
 //--------------------------middleware---------------------------------
 app.use(express.json())
 
@@ -170,11 +186,23 @@ app.get("/verproductos",async function(req,res){
 })
 app.post("/products",upload.array("imagen",6),async function(req,res){
  let producto= await log_products.find({})
+ let imagenes= [];
+
+ if(req.files){
+    for(let img of req.files){
+        let result= await imagekit.upload({file:fs.readFileSync(img.path),
+            fileName:"imagenes"
+        })
+
+        imagenes.push(result.url)
+        console.log("imagen subida correctamente")
+    }
+ }
  let id= producto.length +1
     log_products.create({
         producto_nombre: req.body.nombre,
         producto_descripcion: req.body.descripcion,
-        producto_imagen: req.files,
+        producto_imagen: imagenes,
         producto_precio: req.body.precio,
         producto_stock: req.body.stock,
         producto_envio: req.body.envio,
@@ -217,12 +245,28 @@ app.post("/editarprecio",async function(req,res){
 })
 
 app.post("/editarimagen",upload.array("editarimagen",6),async function(req,res){
+    let imagenes= [];
+
+    let result;
+try{
+    if(req.files){
+    for(let img of req.files){
+         result= await imagekit.upload({file:fs.readFileSync(img.path),
+            fileName: "imagen"
+        })
+
+        imagenes.push(result.url)
+        console.log("imagen subida correctamente")
+    }
+ }
     let producto= await log_products.findOneAndUpdate({producto_id:req.body.id},{
-        producto_imagen: req.files},
+        producto_imagen: result.url},
     {new: true})
 
     console.log(producto)
     res.render("producto-admin",{id:req.body.id, nombre: producto.producto_nombre})
+}catch(error){console.log("error:",error)}
+ 
 })
 
 app.post("/editar-stock",async function(req,res){
@@ -692,6 +736,8 @@ app.post("/webhook", async function(req, res) {
     )
 
     app.post("/carrito",async function(req,res){
+        console.log("producto id session:",req.session.producto_id) //EL SERVIDOR ME ESTÁ DANDO QUE LA ID DEL PRODUCTO ES UN ARCHIVO PNG ?????????? PORFAVOR, ACABEN CON MI SUFRIMIENTO, SI LEEN ESTE COMENTARIO DESACTIVEN MI CUENTA DE GITHUB
+        console.log("id del body:",req.body.id)
         if(req.session.producto_id!==req.body.id){res.send("id del cliente distinta del servidor"); return}
         let producto= await log_products.find({producto_id: req.body.id})
         await log_carrito.create({usuario: req.session.usuario,
@@ -701,7 +747,12 @@ app.post("/webhook", async function(req, res) {
             producto_imagen: producto[0].producto_imagen,
             producto_envio: producto[0].producto_envio
         })
-    })
+
+        res.sendStatus(200) //ahhhh me quiero matar amigo, porfavorque la IA me remplace de una vez...
+
+    }
+
+)
 
     app.get("/ver-carrito",async function(req,res){
      let carrito=   await log_carrito.find({usuario: req.session.usuario})
@@ -860,6 +911,7 @@ res.send("ingreso del numero exitoso")} catch(error){
 })
 //----------------rutas dinámicas--------------------
 
+
 app.get("/tienda/:nombre",async function(req,res){
     console.log("usuario",req.session.usuario)
     let numero= await log_numero_vendedor.find({})
@@ -871,7 +923,9 @@ app.get("/tienda/:nombre",async function(req,res){
 
 })
 
-app.get("/producto/:producto/:id",function(req,res){ req.session.producto_id= req.params.id
+app.get("/producto/:producto/:id",function(req,res){delete req.session.producto_id;
+    req.session.producto_id=req.params.id
+    console.log("id session:",req.session.producto_id)
     req.session.producto= req.params.producto
     console.log(req.session.usuario)
     if(req.session.usuario==="admin"){console.log(req.session.usuario);
@@ -883,6 +937,9 @@ app.get("/producto/:producto/:id",function(req,res){ req.session.producto_id= re
     })}
 
     console.log(req.session.usuario)
+
+    if(req.session.producto_id!==req.params.id){}
+    console.log("id session:",req.session.producto_id)
 })
 
 app.get("/mensajeria/:usuario",function(req,res){if(req.session.usuario==="admin"){return res.render("mensajes2-vendedor",{usuario: req.params.usuario})}
