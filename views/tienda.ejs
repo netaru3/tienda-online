@@ -917,19 +917,24 @@
                 if (productos[i].producto_imagen) {
                     if (Array.isArray(productos[i].producto_imagen) && productos[i].producto_imagen.length > 0) {
                         // Si es un array de imágenes
-                        if (productos[i].producto_imagen[0].filename) {
-                            imagenSrc = `/${productos[i].producto_imagen[0].filename}`;
+                        if (productos[i].producto_imagen[0].filename || productos[i].producto_imagen[0]) {
+                            imagenSrc = `/${productos[i].producto_imagen[0].filename}` ||productos[i].producto_imagen[0];
                         } else if (typeof productos[i].producto_imagen[0] === 'string') {
-                            imagenSrc = `/${productos[i].producto_imagen[0]}`;
-                        }
+                            imagenSrc = `/${productos[i].producto_imagen[0]}`                         }
                     } else if (typeof productos[i].producto_imagen === 'string') {
-                        // Si es una string directa
+                        // Si es una string directo
                         imagenSrc = productos[i].producto_imagen.startsWith('/') 
                             ? productos[i].producto_imagen 
                             : `/${productos[i].producto_imagen}`;
                     }
-                }
+
+                    if(imagenSrc.includes("undefined")){imagenSrc=productos[i].producto_imagen[0]}
+                    if(!imagenSrc.includes("https")){imagenSrc=`/${productos[i].producto_imagen[0]}`}
+
+                    if(typeof(productos[i].producto_imagen[0])==="object"){imagenSrc=`/${productos[i].producto_imagen[0].filename}`}
+                } //ok, este código es una mierda, literalmente hice un bug que hace que de imagenSrc=/undefined y en vez de quitarlo lo parchie con código innecesario, pero amigo, no me quiero comer la cabeza con esto xD
                 
+                console.log("imagensrc",imagenSrc)
                 // Imagen por defecto si no hay imagen
                 if (!imagenSrc) {
                     imagenSrc = '/placeholder.png';
