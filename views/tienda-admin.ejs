@@ -666,6 +666,7 @@
         let i = 0;
         let a = 0;
         let ofertas2x1= await fetch("/ver-ofertas2x1").then(function(res){return res.json()})
+        let ofertas_envio= await fetch("/ver-envios-gratis").then(function(res){return res.json()})
 
         let notificaciones1 = await fetch("/notificaciones-vendedor")
             .then(res => res.json());
@@ -844,12 +845,18 @@
                     }
                 }
 
+                 for(let oferta_envio of ofertas_envio){if(productos[i].producto_id==oferta_envio.producto_id && !nombre.includes("envio gratis")){
+                    nombre+="(primer envio gratis)"
+                }}
 
-                let imagenSrc = `/${productos[i].producto_imagen}`;
+
+                let imagenSrc = `/${productos[i].producto_imagen}`
+               
                 if (productos[i].producto_imagen[0]?.filename) {
-                    imagenSrc = `/${productos[i].producto_imagen[0].filename}`;
+                    imagenSrc = `/${productos[i].producto_imagen[0].filename}`|| productos[i].producto_imagen[0];
                 }
-
+                 if(Array.isArray(productos[i].producto_imagen) && typeof(productos[i].producto_imagen[0])==="string" && productos[i].producto_imagen[0].includes("https")){imagenSrc=productos[i].producto_imagen[0]}
+                console.log("imagensrc:",imagenSrc)
                 contenedor.innerHTML += `
                     <div class="product-card" style="animation-delay: ${i * 0.05}s">
                         <a href="/producto/${encodeURIComponent(nombre)}/${i + 1}">
