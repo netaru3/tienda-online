@@ -22,6 +22,7 @@ Una tienda online completa construida con Node.js, Express, MongoDB y Socket.io 
 - **Integración con WhatsApp** del vendedor
 - **Cotización automática** del dólar (UYU)
 - **estética hecha con IA**
+- **guardado de imagenes** hecho con imagekit
 
 ---
 
@@ -37,6 +38,7 @@ Una tienda online completa construida con Node.js, Express, MongoDB y Socket.io 
 | Multer | Subida de imágenes |
 | bcryptjs | Encriptación de contraseñas |
 | express-session | Manejo de sesiones |
+|imagekit|
 
 ---
 
