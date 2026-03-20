@@ -24,6 +24,7 @@ import  {log_ofertas2x1}  from './base_de_datos_mongo/mongo-ofertas.js'
 import { log_ofertas_envio } from './base_de_datos_mongo/mongo-ofertas_envio.js'
 import { log_reembolsos } from './base_de_datos_mongo/mongo-reembolsos.js'
 import { log_numero_vendedor } from './base_de_datos_mongo/mongo-numero-whatssap.js'
+import mongoSanitize from 'express-mongo-sanitize'
 import ImageKit from 'imagekit'
 import fs from 'fs'
 
@@ -78,6 +79,12 @@ const storage = multer.diskStorage({ destination: function(req,file,cb){cb(null,
 app.use(express.json())
 
 app.use(express.urlencoded({ extended: true }))
+
+app.use((req, res, next) => {
+    req.body = mongoSanitize.sanitize(req.body)
+    next()
+})
+
 app.use(express.static(path.join(import.meta.dirname, "public")));
 app.use((req, res, next) => {
     res.set("Cache-Control", "no-store")
@@ -765,7 +772,8 @@ app.post("/webhook", async function(req, res) {
     })
 
     app.post("/quitar-del-carrito",async function(req,res){
-        await log_carrito.findOneAndDelete({producto_id: Number(req.body.id)})
+        await log_carrito.findOneAndDelete({usuario:req.session.usuario,
+            producto_id: Number(req.body.id)})
         IO.emit("quitar-carrito")
         res.send("ok")
         
