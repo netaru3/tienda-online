@@ -23,6 +23,7 @@ Una tienda online completa construida con Node.js, Express, MongoDB y Socket.io 
 - **Cotización automática** del dólar (UYU)
 - **estética hecha con IA**
 - **guardado de imagenes** hecho con imagekit
+- - **rate limit** hecho con express-rate-limit
 
 ---
 
@@ -38,7 +39,9 @@ Una tienda online completa construida con Node.js, Express, MongoDB y Socket.io 
 | Multer | Subida de imágenes |
 | bcryptjs | Encriptación de contraseñas |
 | express-session | Manejo de sesiones |
-|imagekit|
+|imagekit| | guardado de imágenes en la nube |
+| express-rate-limit | | defensa a ataques DOS |
+
 
 ---
 
