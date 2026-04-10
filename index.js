@@ -27,6 +27,7 @@ import { log_numero_vendedor } from './base_de_datos_mongo/mongo-numero-whatssap
 import mongoSanitize from 'express-mongo-sanitize'
 import ImageKit from 'imagekit'
 import fs from 'fs'
+const rateLimit = require('express-rate-limit')
 
 dotenv.config()
 
@@ -76,6 +77,16 @@ const storage = multer.diskStorage({ destination: function(req,file,cb){cb(null,
 
  const upload= multer({storage}) //probar borrar multer
 //--------------------------middleware---------------------------------
+
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // ventana de 15 minutos
+    max: 10,                   // máximo 10 requests por ventana
+    message: { error: 'Demasiados intentos, esperá 15 minutos' },
+    standardHeaders: true,
+    legacyHeaders: false,
+})
+app.use(limiter)
 app.use(express.json())
 
 app.use(express.urlencoded({ extended: true }))
