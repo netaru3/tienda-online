@@ -27,7 +27,7 @@ import { log_numero_vendedor } from './base_de_datos_mongo/mongo-numero-whatssap
 import mongoSanitize from 'express-mongo-sanitize'
 import ImageKit from 'imagekit'
 import fs from 'fs'
-const rateLimit = require('express-rate-limit')
+import {rateLimit}  from'express-rate-limit'
 
 dotenv.config()
 
