@@ -743,7 +743,7 @@
             if (producto.producto_imagen) {
                 if (Array.isArray(producto.producto_imagen)) {
                     producto.producto_imagen.forEach(img => {
-                        if(!img.filename){productImages.push(img)}
+                        if(!img.filename){ productImages.push(img.startsWith('/') ? img : `/${img}`)}
                         if (img.filename) {
                             productImages.push(`/${img.filename}`);
                         } else if (typeof img === 'string') {
@@ -836,6 +836,8 @@
         if(hay_oferta===false){document.getElementById("borrar-oferta").remove()
             document.getElementById("titulo").remove()
         }
+
+        socket.emit("pedir-comentarios")
     </script>
 </body>
 </html>
