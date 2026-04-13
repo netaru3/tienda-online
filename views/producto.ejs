@@ -490,7 +490,7 @@
     </div> 
 
     
-
+   
     <script src="/socket.io/socket.io.js"></script>
     <script type="module">
         // ----------- declaración de variables ---------------
@@ -752,14 +752,14 @@
                 mostrarproductos(producto);
             }
         }
-
         // -------- websocket ----------
+        socket.emit("pedir-comentarios")
         socket.on("respuestas", function(respuestasdata) {
             respuestas = respuestasdata;
             console.log("respuestas", respuestas);
         });
-
-        socket.on("comentarios", function(comentarios) {
+    
+        socket.on("comentarios", function(comentarios) { console.log("se ejecutó el websocket")
             let intervalId = setInterval(() => {
                 if (respuestas.length !== 0) {
                     mostrarcomentarios(comentarios);
