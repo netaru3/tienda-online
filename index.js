@@ -81,12 +81,20 @@ const storage = multer.diskStorage({ destination: function(req,file,cb){cb(null,
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // ventana de 15 minutos
-    max: 10,                   // máximo 10 requests por ventana
+    max: 300,                   // máximo 150 requests por ventana
     message: { error: 'Demasiados intentos, esperá 15 minutos' },
     standardHeaders: true,
     legacyHeaders: false,
 })
 app.use(limiter)
+
+const limiterlogin = rateLimit({
+    windowMs: 15 * 60 * 1000, // ventana de 15 minutos
+    max: 15,                   // máximo 150 requests por ventana
+    message: { error: 'Demasiados intentos, esperá 15 minutos' },
+    standardHeaders: true,
+    legacyHeaders: false,
+})
 app.use(express.json())
 
 app.use(express.urlencoded({ extended: true }))
@@ -151,7 +159,7 @@ app.get('/data',async function(req,res){
     })
 })
 
-app.post("/data/logeado",async function(req,res){
+app.post("/data/logeado",limiterlogin,async function(req,res){
    delete req.session.usuario
  let cuenta=await log.find({usuario:req.body.usuario});
 try{let comparacion= await bcryptjs.compare(req.body.contraseña, cuenta[0].contraseña)
@@ -187,8 +195,9 @@ app.get("/tienda/visitante",async function(req,res){
     res.render("tienda",{nombre: "visitante",numero: numero_ahora_si_valido_en_serio_UwU})
 })
 
-app.get("/tienda/admin/productos",function(req,res){
+app.get("/tienda/admin/productos",async function(req,res){
     if(req.session.usuario===undefined){return res.sendFile("login.html",{root:import.meta.dirname})}
+
 
     res.render("productos")
 })
@@ -942,24 +951,30 @@ app.get("/tienda/:nombre",async function(req,res){
 
 })
 
-app.get("/producto/:producto/:id",function(req,res){delete req.session.producto_id;
+app.get("/producto/:producto/:id",async function(req,res){delete req.session.producto_id;
     req.session.producto_id=req.params.id
     console.log("id session:",req.session.producto_id)
+
     req.session.producto= req.params.producto
+
+    
+
     console.log(req.session.usuario)
     if(req.session.usuario==="admin"){console.log(req.session.usuario);
-     res.render("producto-admin",{nombre: req.params.producto, id: req.params.id});return
+     res.render("producto-admin",{nombre: req.params.producto, id: req.params.id});
+     return
     }
     else{
         res.render("producto",{nombre: req.params.producto,
         usuario: req.session.usuario, id: req.params.id
-    })}
+    })
+
 
     console.log(req.session.usuario)
 
     if(req.session.producto_id!==req.params.id){}
     console.log("id session:",req.session.producto_id)
-})
+}})
 
 app.get("/mensajeria/:usuario",function(req,res){if(req.session.usuario==="admin"){return res.render("mensajes2-vendedor",{usuario: req.params.usuario})}
     if(req.params.usuario!==req.session.usuario){return res.send("No tiene permiso para acceder a este chat")}
@@ -971,14 +986,17 @@ app.get("/mensajeria/:usuario",function(req,res){if(req.session.usuario==="admin
 //----------------------------websocket----------------------
 
 IO.on("connection",async function(socket){
-    let comentario=await log_comentarios.find({})
-    let respuestas= await log_respuestas.find({})
+   // - -----------------------------------------------------------
     let mensajes= await log_mensajes_cliente.find({})
-
     socket.emit("mensajes",mensajes)
-    socket.emit("comentarios",comentario)
+   socket.on("pedir-comentarios", async function() {
+        let comentario = await log_comentarios.find({}) // ← buscar en el momento que el cliente pide
+        let respuestas = await log_respuestas.find({})
+        socket.emit("comentarios", comentario)
+        socket.emit("respuestas", respuestas)
+    })
 
-    IO.emit("respuestas",respuestas)
+
 
     console.log("te conectaste")
    
