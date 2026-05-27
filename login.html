@@ -165,13 +165,13 @@
     
    return res.text()
 }).then(function(res){
-    if(res!=="error en el inicio de sesión"){
+    if(!res.includes("error")){
         localStorage.setItem("token",res.token)
     window.location.href=`/tienda/${document.getElementById("usuario").value}`;
     socket.emit("html",function(){console.log(res)
         return res})
 }
-    if(res==="error en el inicio de sesión"){alert(res)
+    if(res.includes("error")){alert(res)
    }
  
 })
