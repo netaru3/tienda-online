@@ -81,7 +81,7 @@ const storage = multer.diskStorage({ destination: function(req,file,cb){cb(null,
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // ventana de 15 minutos
-    max: 300,                   // máximo 150 requests por ventana
+    max: 300,                   
     message: { error: 'Demasiados intentos, esperá 15 minutos' },
     standardHeaders: true,
     legacyHeaders: false,
@@ -90,7 +90,7 @@ app.use(limiter)
 
 const limiterlogin = rateLimit({
     windowMs: 15 * 60 * 1000, // ventana de 15 minutos
-    max: 15,                   // máximo 150 requests por ventana
+    limit: 8,                   // máximo 8 requests por ventana
     message: { error: 'Demasiados intentos, esperá 15 minutos' },
     standardHeaders: true,
     legacyHeaders: false,
